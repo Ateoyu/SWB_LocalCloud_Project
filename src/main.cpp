@@ -2,6 +2,7 @@
 #include <WiFi.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
+#include <LittleFS.h>
 #include "FS.h"
 #include "SD.h"
 #include "SPI.h"
@@ -222,134 +223,15 @@ void handleDownload(AsyncWebServerRequest *request) {
 
 void setup() {
     Serial.begin(115200);
+    LittleFS.begin();
     delay(2000);
 
     initSDCard();
     initAP();
 
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-        String html = R"rawliteral(
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESP32-S3 Cloud Storage</title>
-</head>
-<body>
-    <div class="container">
-        <h1>ESP32-S3 Cloud Storage</h1>
-
-        <div class="upload-area">
-            <h2>Upload File</h2>
-            <label for="fileInput" class="upload-label">Choose File</label>
-            <input type="file" id="fileInput">
-            <div class="progress-bar">
-                <div class="progress" id="progress"></div>
-            </div>
-            <div id="status" class="status">Ready to upload...</div>
-        </div>
-
-        <h2>Files on SD Card</h2>
-        <div id="fileList">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Filename</th>
-                        <th>Size</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="fileTable">
-                    <!-- Files loaded by JavaScript -->
-                </tbody>
-            </table>
-        </div>
-
-        <button class="refresh-btn" onclick="refreshFileList()">🔄 Refresh List</button>
-
-        <div style="margin-top: 20px; padding: 10px; background: #f8f9fa; border-radius: 5px; font-size: 0.9em; color: #666;">
-            💡 Tip: Click "Download" to save files with their original names and extensions.
-        </div>
-    </div>
-
-    <script>
-        function refreshFileList() {
-            document.getElementById('status').textContent = 'Loading files...';
-            fetch('/list')
-                .then(response => response.text())
-                .then(html => {
-                    document.getElementById('fileTable').innerHTML = html;
-                    document.getElementById('status').textContent = 'Files loaded!';
-                })
-                .catch(error => {
-                    document.getElementById('status').textContent = 'Error loading files';
-                    console.error('Error:', error);
-                });
-        }
-
-        function deleteFile(filename) {
-            if (confirm('Are you sure you want to delete "' + filename + '"?')) {
-                fetch('/delete?file=' + encodeURIComponent(filename))
-                    .then(response => response.text())
-                    .then(result => {
-                        alert(result);
-                        refreshFileList();
-                    })
-                    .catch(error => {
-                        alert('Error deleting file: ' + error);
-                    });
-            }
-        }
-
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            if (e.target.files.length === 0) return;
-
-            const file = e.target.files[0];
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', '/upload');
-
-            xhr.upload.onprogress = function(e) {
-                if (e.lengthComputable) {
-                    const percent = (e.loaded / e.total) * 100;
-                    document.getElementById('progress').style.width = percent + '%';
-                    document.getElementById('status').textContent =
-                        '📤 Uploading: ' + file.name + ' (' + Math.round(percent) + '%)';
-                }
-            };
-
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    document.getElementById('status').textContent = '✅ Upload complete!';
-                    document.getElementById('progress').style.width = '0%';
-                    document.getElementById('fileInput').value = '';
-                    setTimeout(() => {
-                        document.getElementById('status').textContent = 'Ready to upload...';
-                    }, 2000);
-                    refreshFileList();
-                } else {
-                    document.getElementById('status').textContent = '❌ Upload failed!';
-                }
-            };
-
-            xhr.onerror = function() {
-                document.getElementById('status').textContent = '❌ Upload failed!';
-            };
-
-            document.getElementById('status').textContent = 'Starting upload...';
-            xhr.send(formData);
-        });
-
-        // Initial load
-        refreshFileList();
-    </script>
-</body>
-</html>
-        )rawliteral";
-        request->send(200, "text/html", html);
+        Serial.println("Serving index.html");
+        request->send(LittleFS, "/index.html", "text/html");
     });
 
     //File List
@@ -359,7 +241,7 @@ void setup() {
 
     // Download file
     server.on("/download", HTTP_GET, [](AsyncWebServerRequest *request) {
-
+        handleDownload(request);
     });
 
     // Delete file

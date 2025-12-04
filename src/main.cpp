@@ -23,7 +23,6 @@ IPAddress subnet(255, 255, 255, 0);
 
 SPIClass spi = SPIClass(HSPI);
 
-// ------------------------------------------------------------------------------------------------------------------
 
 void initSDCard() {
     spi.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS);
@@ -126,16 +125,40 @@ String getFileListHTML(String currentPath = "/") {
         String cleanPath = fullPath;
         cleanPath.replace("\"", "&quot;");
 
+        String fileExt = "";
+        int dotIndex = filename.lastIndexOf('.');
+        if (dotIndex != -1) {
+            fileExt = filename.substring(dotIndex);
+            fileExt.toLowerCase();
+        }
+
         if (file.isDirectory()) {
             html += "<tr>";
-            html += "<td><input type='checkbox' data-path=\"" + cleanPath + "\"></td>";
-            html += "<td><button onclick=\"navigateToFolder('" + currentPath + "/" + filename + "')\">📁 " + filename + "</button></td>";
+            html += "<td><button onclick=\"navigateToFolder('" + currentPath + "/" + filename + "')\">📁 " + filename +
+                    "</button></td>";
             html += "</tr>";
         } else {
-            html += "<tr>";
-            html += "<td><input type='checkbox' data-path=\"" + cleanPath + "\"></td>";
-            html += "<td>📄 " + filename + "</td>";
-            html += "</tr>";
+            bool isImage = (fileExt == ".jpg" || fileExt == ".jpeg" ||
+                            fileExt == ".png" || fileExt == ".gif" ||
+                            fileExt == ".bmp" || fileExt == ".webp");
+            if (isImage) {
+                html += "<tr>";
+                html += "<td><input type='checkbox' data-path=\"" + cleanPath + "\"></td>";
+                html += "<td style='display: flex; align-items: center; gap: 10px;'>";
+                html += "<img src='/preview?path=" + cleanPath + "' ";
+
+                html += "onerror=\"this.style.display='none'\" ";
+                html += "alt='' ";
+                html += "onclick=\"showFullImage('" + cleanPath + "')\">";
+                html += "<span>" + filename + "</span>";
+                html += "</td>";
+                html += "</tr>";
+            } else {
+                html += "<tr>";
+                html += "<td><input type='checkbox' data-path=\"" + cleanPath + "\"></td>";
+                html += "<td>📄 " + filename + "</td>";
+                html += "</tr>";
+            }
         }
         file = dir.openNextFile();
     }
@@ -466,6 +489,34 @@ void handleSDInfo(AsyncWebServerRequest *request) {
     request->send(200, "text/plain", info);
 }
 
+void handleImagePreview(AsyncWebServerRequest *request) {
+    if (!request->hasParam("path")) {
+        request->send(400, "text/plain", "Missing path parameter");
+        return;
+    }
+
+    String filepath = request->getParam("path")->value();
+    filepath = sanitizePath(filepath);
+
+    if (!SD.exists(filepath)) {
+        request->send(404, "text/plain", "Image not found");
+        return;
+    }
+
+    String filename = filepath;
+    int lastSlash = filename.lastIndexOf('/');
+    if (lastSlash != -1) {
+        filename = filename.substring(lastSlash + 1);
+    }
+
+    String contentType = getContentType(filename);
+
+    AsyncWebServerResponse *response = request->beginResponse(SD, filepath, contentType);
+
+    response->addHeader("Cache-Control", "public, max-age=86400");
+    request->send(response);
+}
+
 void setup() {
     Serial.begin(115200);
     LittleFS.begin();
@@ -494,6 +545,7 @@ void setup() {
     server.on("/deleteFile", HTTP_GET, handleDeleteFile);
     server.on("/mkdir", HTTP_GET, handleCreateFolder);
     server.on("/deleteFolder", HTTP_GET, handleDeleteFolder);
+    server.on("/preview", HTTP_GET, handleImagePreview);
 
     server.on("/upload", HTTP_POST,
               [](AsyncWebServerRequest *request) {

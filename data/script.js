@@ -107,7 +107,7 @@ function navigateToParent() {
 
 function deleteFile(filename) {
     if (confirm('Are you sure you want to delete "' + filename + '"?')) {
-        fetch('/delete?file=' + encodeURIComponent(filename) + '&path=' + encodeURIComponent(currentPath))
+        fetch('/deleteFile?file=' + encodeURIComponent(filename) + '&path=' + encodeURIComponent(currentPath))
             .then(response => response.text())
             .then(result => {
                 alert(result);
@@ -129,29 +129,18 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('fileInput').addEventListener('change', function (e) {
         if (e.target.files.length === 0) return;
 
-        const file = e.target.files[0];
-        const formData = new FormData();
-        formData.append('file', file);
+        const files = Array.from(e.target.files);
+        const totalFiles = files.length;
+        let uploadedCount = 0;
 
-        const url = '/upload?path=' + encodeURIComponent(currentPath);
+        document.getElementById('status').textContent =
+            `Uploading ${totalFiles} files...`;
+        document.getElementById('progress').style.width = '0%';
 
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', url);
-
-        console.log("Uploading to path:", currentPath);
-
-        xhr.upload.onprogress = function (e) {
-            if (e.lengthComputable) {
-                const percent = (e.loaded / e.total) * 100;
-                document.getElementById('progress').style.width = percent + '%';
+        function uploadNextFile() {
+            if (uploadedCount >= totalFiles) {
                 document.getElementById('status').textContent =
-                    'Uploading: ' + file.name + ' (' + Math.round(percent) + '%)';
-            }
-        };
-
-        xhr.onload = function () {
-            if (xhr.status === 200) {
-                document.getElementById('status').textContent = 'Upload complete!';
+                    'All files uploaded successfully!';
                 document.getElementById('progress').style.width = '0%';
                 document.getElementById('fileInput').value = '';
                 setTimeout(() => {
@@ -159,17 +148,59 @@ document.addEventListener('DOMContentLoaded', function () {
                 }, 2000);
                 refreshFileList();
                 updateSDInfo();
-            } else {
-                document.getElementById('status').textContent = 'Upload failed!';
+                return;
             }
-        };
 
-        xhr.onerror = function () {
-            document.getElementById('status').textContent = 'Upload failed!';
-        };
+            const file = files[uploadedCount];
+            const formData = new FormData();
+            formData.append('file', file);
 
-        document.getElementById('status').textContent = 'Starting upload...';
-        xhr.send(formData);
+            const url = '/upload?path=' + encodeURIComponent(currentPath);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', url);
+
+            console.log(`Uploading (${uploadedCount + 1}/${totalFiles}):`, file.name,
+                "to path:", currentPath);
+
+            xhr.upload.onprogress = function (e) {
+                if (e.lengthComputable) {
+                    const fileProgress = (e.loaded / e.total) * 100;
+                    const overallProgress = (uploadedCount / totalFiles) * 100 +
+                        (fileProgress / totalFiles);
+                    document.getElementById('progress').style.width = overallProgress + '%';
+
+                    document.getElementById('status').textContent =
+                        `Uploading (${uploadedCount + 1}/${totalFiles}): ${file.name} ` +
+                        `(${Math.round(fileProgress)}%)`;
+                }
+            };
+
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    console.log(`Uploaded: ${file.name}`);
+                    uploadedCount++;
+
+                    setTimeout(uploadNextFile, 100);
+                } else {
+                    document.getElementById('status').textContent =
+                        `Failed to upload: ${file.name}`;
+                    console.error(`Upload failed for: ${file.name}`);
+                    uploadedCount++;
+                    setTimeout(uploadNextFile, 100);
+                }
+            };
+
+            xhr.onerror = function () {
+                console.error(`Upload error for: ${file.name}`);
+                uploadedCount++;
+                setTimeout(uploadNextFile, 100);
+            };
+
+            xhr.send(formData);
+        }
+
+        uploadNextFile();
     });
 
     refreshFileList();

@@ -491,12 +491,11 @@ void setup() {
 
 
     server.on("/list", HTTP_GET, handleListFiles);
+    server.on("/sdinfo", HTTP_GET, handleSDInfo);
     server.on("/download", HTTP_GET, handleDownload);
     server.on("/deleteFile", HTTP_GET, handleDeleteFile);
     server.on("/mkdir", HTTP_GET, handleCreateFolder);
     server.on("/deleteFolder", HTTP_GET, handleDeleteFolder);
-
-    server.on("/sdinfo", HTTP_GET, handleSDInfo);
 
     server.on("/upload", HTTP_POST,
               [](AsyncWebServerRequest *request) {

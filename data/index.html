@@ -11,10 +11,11 @@
 <div class="container">
     <h1>ESP32-S3 Cloud Storage</h1>
 
+    <div id="currentPath" class="path-display">Current Path:</div>
+
     <div class="sd-info">
         <h3>SD Card Info</h3>
         <div id="sdCardInfo">Loading...</div>
-        <button onclick="updateSDInfo()">Refresh</button>
     </div>
 
     <div class="folder-creation">
@@ -24,16 +25,14 @@
     </div>
 
     <div class="upload-area">
-        <h2>Upload File</h2>
-        <label for="fileInput" class="upload-label">Choose File</label>
-        <input type="file" id="fileInput">
+        <h2>Upload Files</h2>
+        <label for="fileInput" class="upload-label">Choose Files</label>
+        <input type="file" id="fileInput" multiple>
         <div class="progress-bar">
             <div class="progress" id="progress"></div>
         </div>
         <div id="status" class="status">Ready to upload...</div>
     </div>
-
-    <div id="currentPath" class="path-display">Current Path:</div>
 
     <h2>Files on SD Card</h2>
     <div id="fileList">

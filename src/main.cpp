@@ -61,6 +61,22 @@ void initAP() {
 
 // ------------------------------------------------------------------------------------------------------------------
 
+String getSDCardInfo() {
+    float cardSizeGB = SD.cardSize() / (1024.0 * 1024.0 * 1024.0); // GB
+    float usedBytesGB = SD.usedBytes() / (1024.0 * 1024.0 * 1024.0); // GB
+    float freeBytesGB = cardSizeGB - usedBytesGB; // GB
+
+    char buffer[150];
+    snprintf(buffer, sizeof(buffer),
+             "SD Card Info:\n"
+             "Total: %.2f GB\n"
+             "Used: %.2f GB\n"
+             "Free: %.2f GB",
+             cardSizeGB, usedBytesGB, freeBytesGB);
+
+    return String(buffer);
+}
+
 String getContentType(String filename) {
     //TODO: SWITCH
     filename.toLowerCase();
@@ -447,6 +463,11 @@ void handleDownload(AsyncWebServerRequest *request) {
     request->send(response);
 }
 
+void handleSDInfo(AsyncWebServerRequest *request) {
+    String info = getSDCardInfo();
+    request->send(200, "text/plain", info);
+}
+
 void setup() {
     Serial.begin(115200);
     LittleFS.begin();
@@ -468,11 +489,14 @@ void setup() {
     //     request->send(LittleFS, "/style.css", "text/css");
     // });
 
+
     server.on("/list", HTTP_GET, handleListFiles);
     server.on("/download", HTTP_GET, handleDownload);
-    server.on("/delete", HTTP_GET, handleDeleteFile);
+    server.on("/deleteFile", HTTP_GET, handleDeleteFile);
     server.on("/mkdir", HTTP_GET, handleCreateFolder);
     server.on("/deleteFolder", HTTP_GET, handleDeleteFolder);
+
+    server.on("/sdinfo", HTTP_GET, handleSDInfo);
 
     server.on("/upload", HTTP_POST,
               [](AsyncWebServerRequest *request) {

@@ -16,6 +16,17 @@ function refreshFileList() {
         });
 }
 
+function updateSDInfo() {
+    fetch('/sdinfo')
+        .then(response => response.text())
+        .then(info => {
+            document.getElementById('sdCardInfo').textContent = info;
+        })
+        .catch(error => {
+            document.getElementById('sdCardInfo').textContent = 'Error loading info';
+        });
+}
+
 function updatePathDisplay() {
     let pathDisplay = document.getElementById('currentPath');
     pathDisplay.textContent = 'Current Path: ' + (currentPath === "/" ? "/" : currentPath);
@@ -42,6 +53,7 @@ function createFolder() {
             folderNameInput.value = ''; // Clear input
             document.getElementById('status').textContent = 'Folder created!';
             refreshFileList();
+            updateSDInfo();
         })
         .catch(error => {
             document.getElementById('status').textContent = 'Error creating folder';
@@ -100,6 +112,7 @@ function deleteFile(filename) {
             .then(result => {
                 alert(result);
                 refreshFileList();
+                updateSDInfo();
             })
             .catch(error => {
                 alert('Error deleting file: ' + error);
@@ -145,6 +158,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     document.getElementById('status').textContent = 'Ready to upload...';
                 }, 2000);
                 refreshFileList();
+                updateSDInfo();
             } else {
                 document.getElementById('status').textContent = 'Upload failed!';
             }
@@ -159,5 +173,5 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     refreshFileList();
-
+    updateSDInfo();
 });

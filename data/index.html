@@ -11,6 +11,12 @@
 <div class="container">
     <h1>ESP32-S3 Cloud Storage</h1>
 
+    <div class="sd-info">
+        <h3>SD Card Info</h3>
+        <div id="sdCardInfo">Loading...</div>
+        <button onclick="updateSDInfo()">Refresh</button>
+    </div>
+
     <div class="folder-creation">
         <h3>Create New Folder</h3>
         <input type="text" id="folderName" placeholder="Folder name">

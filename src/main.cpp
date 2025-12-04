@@ -101,15 +101,13 @@ String getFileListHTML(String currentPath = "/") {
     String html = "";
     File dir = SD.open(currentPath);
     if (!dir) {
-        return "<tr><td colspan='3'>Failed to open directory: " + currentPath + "</td></tr>";
+        return "<tr><td colspan='2'>Failed to open directory: " + currentPath + "</td></tr>";
     }
 
     if (currentPath != "/") {
         html += "<tr>";
-        html += "<td>📁 ..</td>";
-        html += "<td>";
-        html += "<button onclick=\"navigateToParent()\">Up</button>";
-        html += "</td>";
+        html += "<td><input type='checkbox' disabled></td>";
+        html += "<td><button onclick=\"navigateToParent()\">📁 ..</button></td>";
         html += "</tr>";
     }
 
@@ -121,22 +119,25 @@ String getFileListHTML(String currentPath = "/") {
             file = dir.openNextFile();
             continue;
         }
+
+        String fullPath = currentPath;
+        if (fullPath != "/" && !fullPath.endsWith("/")) {
+            fullPath += "/";
+        }
+        fullPath += filename;
+
+        String cleanPath = fullPath;
+        cleanPath.replace("\"", "&quot;");
+
         if (file.isDirectory()) {
             html += "<tr>";
-            html += "<td>📁 " + filename + "/</td>";
-            html += "<td>";
-            html += "<button onclick=\"navigateToFolder('" + currentPath + "/" + filename + "')\">Open</button>";
-            html += "<button class='delete-btn' onclick=\"deleteFolder('" + filename + "')\">Delete</button>";
-            html += "</td>";
+            html += "<td><input type='checkbox' data-path=\"" + cleanPath + "\"></td>";
+            html += "<td><button onclick=\"navigateToFolder('" + currentPath + "/" + filename + "')\">📁 " + filename + "</button></td>";
             html += "</tr>";
         } else {
             html += "<tr>";
+            html += "<td><input type='checkbox' data-path=\"" + cleanPath + "\"></td>";
             html += "<td>📄 " + filename + "</td>";
-            html += "<td>";
-            html += "<a href='/download?file=" + filename + "' download='" + filename +
-                    "' class='download-btn'>Download</a> ";
-            html += "<button class='delete-btn' onclick=\"deleteFile('" + filename + "')\">Delete</button>";
-            html += "</td>";
             html += "</tr>";
         }
         file = dir.openNextFile();

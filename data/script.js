@@ -1,14 +1,29 @@
 let currentPath = "/";
+let selectedFiles = new Set();
 
 function refreshFileList() {
     document.getElementById('status').textContent = 'Loading files...';
+    selectedFiles.clear();
+    updateBatchActions();
+
     fetch('/list?path=' + encodeURIComponent(currentPath))
         .then(response => response.text())
         .then(html => {
             document.getElementById('fileTable').innerHTML = html;
             document.getElementById('status').textContent = 'Files loaded!';
-
             updatePathDisplay();
+            updateBatchActions();
+
+            document.getElementById('selectAll').checked = false;
+            document.getElementById('selectAll').indeterminate = false;
+
+            setTimeout(() => {
+                document.querySelectorAll('#fileTable input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.addEventListener('change', function() {
+                        toggleFileSelection(this.dataset.path, this);
+                    });
+                });
+            }, 100);
         })
         .catch(error => {
             document.getElementById('status').textContent = 'Error loading files';
@@ -30,6 +45,72 @@ function updateSDInfo() {
 function updatePathDisplay() {
     let pathDisplay = document.getElementById('currentPath');
     pathDisplay.textContent = 'Current Path: ' + (currentPath === "/" ? "/" : currentPath);
+}
+
+function updateBatchActions() {
+    const batchPanel = document.getElementById('batchActions');
+    const selectedCount = document.getElementById('selectedCount');
+
+    selectedCount.textContent = selectedFiles.size + ' selected';
+
+    if (selectedFiles.size > 0) {
+        batchPanel.classList.add('visible');
+    } else {
+        batchPanel.classList.remove('visible');
+    }
+}
+
+function toggleFileSelection(filePath, checkbox) {
+    if (checkbox.checked) {
+        selectedFiles.add(filePath);
+    } else {
+        selectedFiles.delete(filePath);
+    }
+
+    const totalCheckboxes = document.querySelectorAll('#fileTable input[type="checkbox"]:not(:disabled)').length;
+    const checkedCount = document.querySelectorAll('#fileTable input[type="checkbox"]:checked:not(:disabled)').length;
+    const selectAllCheckbox = document.getElementById('selectAll');
+
+    selectAllCheckbox.checked = checkedCount === totalCheckboxes;
+    selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < totalCheckboxes;
+
+    updateBatchActions();
+}
+
+function toggleSelectAll(checked) {
+    const checkboxes = document.querySelectorAll('#fileTable input[type="checkbox"]:not(:disabled)');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = checked;
+            const filePath = checkbox.dataset.path;
+            if (checked) {
+                selectedFiles.add(filePath);
+            } else {
+                selectedFiles.delete(filePath);
+            }
+        });
+
+        updateBatchActions();
+}
+
+function selectAllFiles() {
+    const checkboxes = document.querySelectorAll('#fileTable input[type="checkbox"]:not(:disabled)');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = true;
+        selectedFiles.add(checkbox.dataset.path);
+    });
+    document.getElementById('selectAll').checked = true;
+    updateBatchActions();
+}
+
+function deselectAllFiles() {
+    const checkboxes = document.querySelectorAll('#fileTable input[type="checkbox"]:not(:disabled)');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+        selectedFiles.delete(checkbox.dataset.path);
+    });
+    document.getElementById('selectAll').checked = false;
+    document.getElementById('selectAll').indeterminate = false;
+    updateBatchActions();
 }
 
 function createFolder() {
@@ -63,6 +144,87 @@ function createFolder() {
     console.log("Creating folder:", sanitizedName, "in path:", currentPath);
     console.log("Request URL:", '/mkdir?name=' + encodeURIComponent(sanitizedName) +
         '&path=' + encodeURIComponent(currentPath));
+}
+
+function downloadSelected() {
+    if (selectedFiles.size === 0) {
+        alert('Please select files to download');
+        return;
+    }
+
+    document.getElementById('status').textContent = 'Preparing download...';
+
+    selectedFiles.forEach(filePath => {
+        const filename = filePath.split('/').pop();
+        const parentPath = filePath.substring(0, filePath.lastIndexOf('/'));
+
+        const link = document.createElement('a');
+        link.href = `/download?file=${encodeURIComponent(filename)}&path=${encodeURIComponent(parentPath)}`;
+        link.download = filename;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+
+    document.getElementById('status').textContent = `Downloading ${selectedFiles.size} files...`;
+    setTimeout(() => {
+        document.getElementById('status').textContent = 'Download started. Check your downloads folder.';
+    }, 1000);
+}
+
+function deleteSelected() {
+    if (selectedFiles.size === 0) {
+        alert('Please select files to delete');
+        return;
+    }
+
+    if (!confirm(`Are you sure you want to delete ${selectedFiles.size} selected item(s)?`)) {
+        return;
+    }
+
+    document.getElementById('status').textContent = `Deleting ${selectedFiles.size} items...`;
+
+    let deletedCount = 0;
+    let errorCount = 0;
+
+    selectedFiles.forEach(filePath => {
+        const filename = filePath.split('/').pop();
+        const parentPath = filePath.substring(0, filePath.lastIndexOf('/'));
+
+        const isFolder = document.querySelector(`input[data-path="${filePath}"]`)?.closest('tr')?.textContent.includes('📁');
+
+        const url = isFolder
+            ? `/deleteFolder?name=${encodeURIComponent(filename)}&path=${encodeURIComponent(parentPath)}`
+            : `/deleteFile?file=${encodeURIComponent(filename)}&path=${encodeURIComponent(parentPath)}`;
+
+        fetch(url)
+            .then(response => response.text())
+            .then(result => {
+                deletedCount++;
+                console.log(`Deleted: ${filePath}`);
+
+                if (deletedCount + errorCount === selectedFiles.size) {
+                    document.getElementById('status').textContent =
+                        `Deleted ${deletedCount} item(s)${errorCount > 0 ? `, ${errorCount} failed` : ''}`;
+                    deselectAllFiles();
+                    refreshFileList();
+                    updateSDInfo();
+                }
+            })
+            .catch(error => {
+                errorCount++;
+                console.error(`Failed to delete: ${filePath}`, error);
+
+                if (deletedCount + errorCount === selectedFiles.size) {
+                    document.getElementById('status').textContent =
+                        `Deleted ${deletedCount} item(s)${errorCount > 0 ? `, ${errorCount} failed` : ''}`;
+                    deselectAllFiles();
+                    refreshFileList();
+                    updateSDInfo();
+                }
+            });
+    });
 }
 
 function deleteFolder(folderName) {
@@ -120,88 +282,86 @@ function deleteFile(filename) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function () {
+function fileUpload(e) {
+    if (e.target.files.length === 0) return;
 
-    document.getElementById('createFolderBtn').addEventListener('click', function() {
-        createFolder();
-    });
+    const files = Array.from(e.target.files);
+    const totalFiles = files.length;
+    let uploadedCount = 0;
 
-    document.getElementById('fileInput').addEventListener('change', function (e) {
-        if (e.target.files.length === 0) return;
+    document.getElementById('status').textContent =
+        `Uploading ${totalFiles} files...`;
+    document.getElementById('progress').style.width = '0%';
 
-        const files = Array.from(e.target.files);
-        const totalFiles = files.length;
-        let uploadedCount = 0;
-
-        document.getElementById('status').textContent =
-            `Uploading ${totalFiles} files...`;
-        document.getElementById('progress').style.width = '0%';
-
-        function uploadNextFile() {
-            if (uploadedCount >= totalFiles) {
-                document.getElementById('status').textContent =
-                    'All files uploaded successfully!';
-                document.getElementById('progress').style.width = '0%';
-                document.getElementById('fileInput').value = '';
-                setTimeout(() => {
-                    document.getElementById('status').textContent = 'Ready to upload...';
-                }, 2000);
-                refreshFileList();
-                updateSDInfo();
-                return;
-            }
-
-            const file = files[uploadedCount];
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const url = '/upload?path=' + encodeURIComponent(currentPath);
-
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', url);
-
-            console.log(`Uploading (${uploadedCount + 1}/${totalFiles}):`, file.name,
-                "to path:", currentPath);
-
-            xhr.upload.onprogress = function (e) {
-                if (e.lengthComputable) {
-                    const fileProgress = (e.loaded / e.total) * 100;
-                    const overallProgress = (uploadedCount / totalFiles) * 100 +
-                        (fileProgress / totalFiles);
-                    document.getElementById('progress').style.width = overallProgress + '%';
-
-                    document.getElementById('status').textContent =
-                        `Uploading (${uploadedCount + 1}/${totalFiles}): ${file.name} ` +
-                        `(${Math.round(fileProgress)}%)`;
-                }
-            };
-
-            xhr.onload = function () {
-                if (xhr.status === 200) {
-                    console.log(`Uploaded: ${file.name}`);
-                    uploadedCount++;
-
-                    setTimeout(uploadNextFile, 100);
-                } else {
-                    document.getElementById('status').textContent =
-                        `Failed to upload: ${file.name}`;
-                    console.error(`Upload failed for: ${file.name}`);
-                    uploadedCount++;
-                    setTimeout(uploadNextFile, 100);
-                }
-            };
-
-            xhr.onerror = function () {
-                console.error(`Upload error for: ${file.name}`);
-                uploadedCount++;
-                setTimeout(uploadNextFile, 100);
-            };
-
-            xhr.send(formData);
+    function uploadNextFile() {
+        if (uploadedCount >= totalFiles) {
+            document.getElementById('status').textContent =
+                'All files uploaded successfully!';
+            document.getElementById('progress').style.width = '0%';
+            document.getElementById('fileInput').value = '';
+            setTimeout(() => {
+                document.getElementById('status').textContent = 'Ready to upload...';
+            }, 2000);
+            refreshFileList();
+            updateSDInfo();
+            return;
         }
 
-        uploadNextFile();
-    });
+        const file = files[uploadedCount];
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const url = '/upload?path=' + encodeURIComponent(currentPath);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', url);
+
+        console.log(`Uploading (${uploadedCount + 1}/${totalFiles}):`, file.name,
+            "to path:", currentPath);
+
+        xhr.upload.onprogress = function (e) {
+            if (e.lengthComputable) {
+                const fileProgress = (e.loaded / e.total) * 100;
+                const overallProgress = (uploadedCount / totalFiles) * 100 +
+                    (fileProgress / totalFiles);
+                document.getElementById('progress').style.width = overallProgress + '%';
+
+                document.getElementById('status').textContent =
+                    `Uploading (${uploadedCount + 1}/${totalFiles}): ${file.name} ` +
+                    `(${Math.round(fileProgress)}%)`;
+            }
+        };
+
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                console.log(`Uploaded: ${file.name}`);
+                uploadedCount++;
+
+                setTimeout(uploadNextFile, 100);
+            } else {
+                document.getElementById('status').textContent =
+                    `Failed to upload: ${file.name}`;
+                console.error(`Upload failed for: ${file.name}`);
+                uploadedCount++;
+                setTimeout(uploadNextFile, 100);
+            }
+        };
+
+        xhr.onerror = function () {
+            console.error(`Upload error for: ${file.name}`);
+            uploadedCount++;
+            setTimeout(uploadNextFile, 100);
+        };
+
+        xhr.send(formData);
+    }
+
+    uploadNextFile();
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('createFolderBtn').addEventListener('click', createFolder);
+    document.getElementById('fileInput').addEventListener('change', fileUpload);
 
     refreshFileList();
     updateSDInfo();

@@ -34,13 +34,10 @@ void initSDCard() {
     }
 
     uint8_t cardType = SD.cardType();
-    if(cardType == CARD_NONE) {
+    if (cardType == CARD_NONE) {
         Serial.println("No SD card attached");
         return;
     }
-
-    uint64_t cardSize = SD.cardSize() / (1024 * 1024);
-    Serial.printf("SD Card Size: %lluMB\n", cardSize);
 }
 
 void initAP() {
@@ -64,7 +61,8 @@ void initAP() {
 
 // ------------------------------------------------------------------------------------------------------------------
 
-String getContentType(String filename) { //TODO: SWITCH
+String getContentType(String filename) {
+    //TODO: SWITCH
     filename.toLowerCase();
     if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) return "image/jpeg";
     else if (filename.endsWith(".png")) return "image/png";
@@ -83,41 +81,165 @@ String getContentType(String filename) { //TODO: SWITCH
     else return "application/octet-stream";
 }
 
-String getFileListHTML() {
+String getFileListHTML(String currentPath = "/") {
     String html = "";
-    File root = SD.open("/");
-    if (!root) {
-        return "<tr><td colspan='3'>Failed to open root directory</td></tr>";
+    File dir = SD.open(currentPath);
+    if (!dir) {
+        return "<tr><td colspan='3'>Failed to open directory: " + currentPath + "</td></tr>";
     }
 
-    File file = root.openNextFile();
+    if (currentPath != "/") {
+        html += "<tr>";
+        html += "<td>📁 ..</td>";
+        html += "<td>";
+        html += "<button onclick=\"navigateToParent()\">Up</button>";
+        html += "</td>";
+        html += "</tr>";
+    }
+
+    File file = dir.openNextFile();
     while (file) {
         String filename = String(file.name());
-        if (!file.isDirectory() && !filename.startsWith(".")) {
+
+        if (filename.startsWith(".")) {
+            file = dir.openNextFile();
+            continue;
+        }
+        if (file.isDirectory()) {
             html += "<tr>";
-            html += "<td>" + filename + "</td>";
+            html += "<td>📁 " + filename + "/</td>";
             html += "<td>";
-            html += "<a href='/download?file=" + filename + "' download='" + filename + "' class='download-btn'>Download</a> ";
+            html += "<button onclick=\"navigateToFolder('" + currentPath + "/" + filename + "')\">Open</button>";
+            html += "<button class='delete-btn' onclick=\"deleteFolder('" + filename + "')\">Delete</button>";
+            html += "</td>";
+            html += "</tr>";
+        } else {
+            html += "<tr>";
+            html += "<td>📄 " + filename + "</td>";
+            html += "<td>";
+            html += "<a href='/download?file=" + filename + "' download='" + filename +
+                    "' class='download-btn'>Download</a> ";
             html += "<button class='delete-btn' onclick=\"deleteFile('" + filename + "')\">Delete</button>";
             html += "</td>";
             html += "</tr>";
         }
-        file = root.openNextFile();
+        file = dir.openNextFile();
     }
-    root.close();
+    dir.close();
     return html;
 }
 
-// ---------
+// ------------------------------------------------------------------------------------------------------------------
 
-void handleDelete(AsyncWebServerRequest *request) {
+void createPath(String path) {
+    String current = "";
+    int start = 0;
+
+    while (start < path.length()) {
+        int end = path.indexOf('/', start + 1);
+        if (end == -1) break;
+
+        current = path.substring(0, end);
+        if (!SD.exists(current)) {
+            SD.mkdir(current);
+        }
+        start = end;
+    }
+}
+
+String sanitizePath(String path) {
+    path.replace("\\", "/"); // Normalize slashes
+
+    // Remove any ../ or ./ sequences
+    while (path.indexOf("/../") >= 0 || path.indexOf("/./") >= 0) {
+        path.replace("/../", "/");
+        path.replace("/./", "/");
+    }
+
+    // Ensure path starts with /
+    if (!path.startsWith("/")) {
+        path = "/" + path;
+    }
+
+    // Remove double slashes
+    while (path.indexOf("//") >= 0) {
+        path.replace("//", "/");
+    }
+
+    return path;
+}
+
+String sanitizeFilename(String filename) {
+    // Remove path components from filename
+    int lastSlash = filename.lastIndexOf('/');
+    if (lastSlash != -1) {
+        filename = filename.substring(lastSlash + 1);
+    }
+
+    // Replace problematic characters
+    filename.replace(" ", "_");
+    filename.replace("..", "");
+
+    return filename;
+}
+
+bool deleteFolderRecursive(String path) {
+    File dir = SD.open(path);
+    if (!dir) {
+        return false;
+    }
+
+    if (!dir.isDirectory()) {
+        dir.close();
+        return SD.remove(path);
+    }
+
+    dir.rewindDirectory();
+    File file = dir.openNextFile();
+
+    while (file) {
+        String filePath = path + "/" + String(file.name());
+
+        if (file.isDirectory()) {
+            if (!deleteFolderRecursive(filePath)) {
+                dir.close();
+                return false;
+            }
+        } else {
+            if (!SD.remove(filePath)) {
+                dir.close();
+                return false;
+            }
+        }
+        file = dir.openNextFile();
+    }
+
+    dir.close();
+
+    return SD.rmdir(path);
+}
+
+// ------------------------------------------------------------------------------------------------------------------
+
+void handleDeleteFile(AsyncWebServerRequest *request) {
     if (!request->hasParam("file")) {
         request->send(400, "text/plain", "Missing file parameter");
         return;
     }
 
+    String currentPath = "/";
+    if (request->hasParam("path")) {
+        currentPath = request->getParam("path")->value();
+    }
+
+    if (!currentPath.endsWith("/") && currentPath != "/") {
+        currentPath += "/";
+    }
+
     String filename = request->getParam("file")->value();
-    String filepath = "/" + filename;
+    String filepath = currentPath + filename;
+
+    sanitizePath(filepath);
 
     Serial.printf("Delete requested: %s\n", filepath.c_str());
 
@@ -134,48 +256,142 @@ void handleDelete(AsyncWebServerRequest *request) {
     }
 }
 
+void handleDeleteFolder(AsyncWebServerRequest *request) {
+    if (!request->hasParam("name")) {
+        request->send(400, "text/plain", "Missing folder name");
+        return;
+    }
+
+    String folderName = request->getParam("name")->value();
+    String currentPath = "/";
+
+    if (request->hasParam("path")) {
+        currentPath = request->getParam("path")->value();
+    }
+
+    if (currentPath != "/" && !currentPath.endsWith("/")) {
+        currentPath += "/";
+    }
+
+    String fullPath = currentPath + folderName;
+    fullPath = sanitizePath(fullPath);
+
+    if (fullPath == "/" || fullPath.length() <= 1) {
+        request->send(400, "text/plain", "Cannot delete root directory");
+        return;
+    }
+
+    Serial.printf("Delete folder requested: %s\n", fullPath.c_str());
+
+    if (!SD.exists(fullPath)) {
+        request->send(404, "text/plain", "Folder not found");
+        return;
+    }
+
+    File dir = SD.open(fullPath);
+    if (!dir.isDirectory()) {
+        dir.close();
+        request->send(400, "text/plain", "Not a directory");
+        return;
+    }
+    dir.close();
+
+    if (deleteFolderRecursive(fullPath)) {
+        request->send(200, "text/plain", "Folder deleted: " + folderName);
+        Serial.printf("Folder deleted: %s\n", fullPath.c_str());
+    } else {
+        request->send(500, "text/plain", "Failed to delete folder");
+    }
+}
+
+void handleCreateFolder(AsyncWebServerRequest *request) {
+    if (!request->hasParam("name")) {
+        request->send(400, "text/plain", "Missing folder name");
+        return;
+    }
+
+    String folderName = request->getParam("name")->value();
+    String currentPath = "/";
+
+    if (request->hasParam("path")) {
+        currentPath = request->getParam("path")->value();
+    }
+
+    folderName.replace("/", "_");
+    folderName.replace("\\", "_");
+    folderName.replace("..", "");
+
+    if (currentPath != "/" && !currentPath.endsWith("/")) {
+        currentPath += "/";
+    }
+
+    String fullPath = currentPath + folderName;
+
+    if (SD.mkdir(fullPath)) {
+        request->send(200, "text/plain", "Folder created: " + folderName);
+        Serial.printf("Folder created: %s\n", fullPath.c_str());
+    } else {
+        request->send(500, "text/plain", "Failed to create folder");
+    }
+}
+
+void handleListFiles(AsyncWebServerRequest *request) {
+    String path = "/";
+    if (request->hasParam("path")) {
+        path = request->getParam("path")->value();
+    }
+    request->send(200, "text/html", getFileListHTML(path));
+}
+
 void handleUpload(AsyncWebServerRequest *request,
-                      const String& filename,
-                      size_t index,
-                      uint8_t *data,
-                      size_t len,
-                      bool final) {
+                  const String &filename,
+                  size_t index,
+                  uint8_t *data,
+                  size_t len,
+                  bool final) {
+    static File uploadFile;
+    static String currentPath;
+    static String currentFilename;
 
-        static File uploadFile;
-        static String currentFilename;
+    if (!index) {
+        currentPath = "/";
+        currentFilename = filename;
 
-        if (!index) {
-            currentFilename = filename;
-
-            if (currentFilename.startsWith("/")) {
-                currentFilename = currentFilename.substring(1);
-            }
-
-            int lastSlash = currentFilename.lastIndexOf('/');
-            if (lastSlash != -1) {
-                currentFilename = currentFilename.substring(lastSlash + 1);
-            }
-
-            currentFilename.replace(" ", "_");
-
-            String filepath = "/" + currentFilename;
-            Serial.printf("Upload start: %s\n", filepath.c_str());
-
-            uploadFile = SD.open(filepath, FILE_WRITE);
-            if (!uploadFile) {
-                Serial.println("Failed to open file for writing");
-            }
+        if (request->hasParam("path")) {
+            currentPath = request->getParam("path")->value();
+            Serial.printf("Got path from URL: %s\n", currentPath.c_str());
+        } else {
+            Serial.println("No path parameter found in URL!");
         }
 
-        if (uploadFile && len > 0) {
-            uploadFile.write(data, len);
+        currentPath = sanitizePath(currentPath);
+
+        if (!currentPath.endsWith("/") && currentPath != "/") {
+            currentPath += "/";
         }
 
-        if (final && uploadFile) {
-            uploadFile.close();
-            size_t totalSize = index + len;
-            Serial.printf("Upload complete: %s, Size: %d bytes\n", currentFilename.c_str(), totalSize);
+        createPath(currentPath);
+
+        currentFilename = sanitizeFilename(filename);
+
+        String filepath = currentPath + currentFilename;
+        Serial.printf("Upload start to: %s, full path: %s\n", currentPath.c_str(), filepath.c_str());
+
+        uploadFile = SD.open(filepath, FILE_WRITE);
+        if (!uploadFile) {
+            Serial.println("Failed to open file for writing");
         }
+    }
+
+    if (uploadFile && len > 0) {
+        uploadFile.write(data, len);
+    }
+
+    if (final && uploadFile) {
+        uploadFile.close();
+        size_t totalSize = index + len;
+        Serial.printf("Upload complete: %s, Size: %d bytes\n", currentFilename.c_str(), totalSize);
+    }
 }
 
 void handleDownload(AsyncWebServerRequest *request) {
@@ -184,8 +400,18 @@ void handleDownload(AsyncWebServerRequest *request) {
         return;
     }
 
+    String currentPath = "/";
+
+    if (request->hasParam("path")) {
+        currentPath = request->getParam("path")->value();
+    }
+
+    if (!currentPath.endsWith("/") && currentPath != "/") {
+        currentPath += "/";
+    }
+
     String filename = request->getParam("file")->value();
-    String filepath = "/" + filename;
+    String filepath = sanitizePath(currentPath + filename);
 
     Serial.printf("Download requested: %s\n", filepath.c_str());
 
@@ -208,7 +434,7 @@ void handleDownload(AsyncWebServerRequest *request) {
     file.close();
 
     Serial.printf("Sending file: %s, bytes, Type: %s\n",
-                 filename.c_str(), contentType.c_str());
+                  filename.c_str(), contentType.c_str());
 
     AsyncWebServerResponse *response = request->beginResponse(SD, filepath, contentType);
 
@@ -234,28 +460,26 @@ void setup() {
         request->send(LittleFS, "/index.html", "text/html");
     });
 
-    //File List
-    server.on("/list", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->send(200, "text/html", getFileListHTML());
+    server.on("/script.js", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send(LittleFS, "/script.js", "application/javascript");
     });
 
-    // Download file
-    server.on("/download", HTTP_GET, [](AsyncWebServerRequest *request) {
-        handleDownload(request);
-    });
+    // server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request) {
+    //     request->send(LittleFS, "/style.css", "text/css");
+    // });
 
-    // Delete file
-    server.on("/delete", HTTP_GET, [](AsyncWebServerRequest *request) {
-        handleDelete(request);
-    });
+    server.on("/list", HTTP_GET, handleListFiles);
+    server.on("/download", HTTP_GET, handleDownload);
+    server.on("/delete", HTTP_GET, handleDeleteFile);
+    server.on("/mkdir", HTTP_GET, handleCreateFolder);
+    server.on("/deleteFolder", HTTP_GET, handleDeleteFolder);
 
-    // Upload handler
     server.on("/upload", HTTP_POST,
-    [](AsyncWebServerRequest *request) {
-        request->send(200);
-    },
-    handleUpload
-);
+              [](AsyncWebServerRequest *request) {
+                  request->send(200);
+              },
+              handleUpload
+    );
 
     server.begin();
 }

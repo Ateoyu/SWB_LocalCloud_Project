@@ -62,17 +62,14 @@ void initAP() {
 // ------------------------------------------------------------------------------------------------------------------
 
 String getSDCardInfo() {
-    float cardSizeGB = SD.cardSize() / (1024.0 * 1024.0 * 1024.0); // GB
-    float usedBytesGB = SD.usedBytes() / (1024.0 * 1024.0 * 1024.0); // GB
-    float freeBytesGB = cardSizeGB - usedBytesGB; // GB
+    float totalGiB = SD.cardSize() / (1024.0 * 1024.0 * 1024.0);
+    float usedGiB = SD.usedBytes() / (1024.0 * 1024.0 * 1024.0);
+    float freeGiB = totalGiB - usedGiB;
 
-    char buffer[150];
+    char buffer[50];
     snprintf(buffer, sizeof(buffer),
-             "SD Card Info:\n"
-             "Total: %.2f GB\n"
-             "Used: %.2f GB\n"
              "Free: %.2f GB",
-             cardSizeGB, usedBytesGB, freeBytesGB);
+             freeGiB);
 
     return String(buffer);
 }

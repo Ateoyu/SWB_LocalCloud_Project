@@ -28,24 +28,29 @@ void initAP() {
 }
 
 void setupWebServer() {
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-        Serial.println("Serving index.html");
-        request->send(LittleFS, "/index.html", "text/html");
-    });
-    server.on("/js/*", HTTP_GET, [](AsyncWebServerRequest *request) {
-        String path = request->url();
-        request->send(LittleFS, path, "application/javascript");
-    });
+    // ------------------------------------------------------
+    // 1. STATIC ASSETS (LittleFS)
+    // ------------------------------------------------------
 
-    server.on("/icons/*", HTTP_GET, [](AsyncWebServerRequest *request) {
-        String path = request->url();
-        request->send(LittleFS, path, "image/png");
-    });
+    // Map URL "/icons/" to LittleFS folder "/icons/"
+    server.serveStatic("/icons/", LittleFS, "/icons/");
 
-    server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request) {
-        Serial.println("/styles/style.css");
-        request->send(LittleFS, "/styles/style.css", "text/css");
-    });
+    // Map URL "/js/" to LittleFS folder "/js/"
+    server.serveStatic("/js/", LittleFS, "/js/");
+
+    // Map URL "/styles/" to LittleFS folder "/styles/"
+    server.serveStatic("/styles/", LittleFS, "/styles/");
+
+    // Map Root "/" to LittleFS Root "/"
+    // .setDefaultFile("index.html") means if they request http://ip/,
+    // it serves /index.html automatically.
+    server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
+
+    // ------------------------------------------------------
+    // 2. API ENDPOINTS (SD Card & Logic)
+    // ------------------------------------------------------
+    // These remain as dynamic handlers because they execute logic
+    // (creating files, deleting, listing) rather than just serving static content.
 
     server.on("/list", HTTP_GET, handleListFiles);
     server.on("/sdinfo", HTTP_GET, handleSDInfo);
@@ -54,10 +59,13 @@ void setupWebServer() {
     server.on("/mkdir", HTTP_GET, handleCreateFolder);
     server.on("/deleteFolder", HTTP_GET, handleDeleteFolder);
     server.on("/preview", HTTP_GET, handleImagePreview);
+
     server.on("/upload", HTTP_POST,
               [](AsyncWebServerRequest *request) { request->send(200); },
               handleUpload);
+
     server.begin();
+    Serial.println("Web server started");
 }
 
 

@@ -1,5 +1,5 @@
-import { state } from '/js/uiManager.js';
-import { refreshFileList } from '/js/fileManager.js';
+import { state } from './uiManager.js';
+import { refreshFileList } from './fileManager.js';
 
 function navigateToFolder(folderPath) {
     folderPath = folderPath.replace(/\/+/g, '/');

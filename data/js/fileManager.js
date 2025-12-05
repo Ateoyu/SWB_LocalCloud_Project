@@ -1,7 +1,6 @@
-import { state, setStatus, updateProgress, updateSDInfo, updatePathDisplay, updateBatchActions } from '/js/uiManager.js';
-import { toggleFileSelection } from '/js/batchActions.js';
-import { updateFileListWithThumbnails } from '/js/thumbnailManager.js';
-
+import { state, setStatus, updateProgress, updateSDInfo, updatePathDisplay, updateBatchActions } from './uiManager.js';
+import { toggleFileSelection } from './batchActions.js';
+import { updateFileListWithThumbnails } from './thumbnailManager.js';
 function refreshFileList() {
     setStatus('Loading files...');
     state.selectedFiles.clear();

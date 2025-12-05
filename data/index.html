@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ESP Drive</title>
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="styles/style.css">
     <script src="js/main.js" type="module"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
@@ -12,7 +12,7 @@
 
 <div class="mobile-header">
     <button id="menuToggle" class="icon-btn">
-        <img src="/icons/menu.png" alt="Menu" width="24" height="24">
+        <img src="icons/menu.png" alt="Menu" width="24" height="24">
     </button>
     <span class="mobile-brand">ESP Drive</span>
 </div>
@@ -20,14 +20,14 @@
 <div class="app-container">
     <aside class="sidebar" id="sidebar">
         <div class="brand">
-            <img src="/icons/cloud_logo.png" class="brand-icon" alt="Logo">
+            <img src="icons/cloud_logo.png" class="brand-icon" alt="Logo">
             <h2>ESP Drive</h2>
         </div>
 
         <div class="action-panel">
             <div class="upload-area">
                 <label for="fileInput" class="upload-btn-primary">
-                    <img src="/icons/upload.png" alt="Upload" class="icon-on-btn"> Upload
+                    <img src="icons/upload.png" alt="Upload" class="icon-on-btn"> Upload
                 </label>
                 <input type="file" id="fileInput" multiple hidden>
                 <div id="status" class="status-text">Ready</div>
@@ -43,7 +43,7 @@
                 <div class="input-group">
                     <input type="text" id="folderName" placeholder="Name...">
                     <button id="createFolderBtn" class="btn-icon">
-                        <img src="/icons/plus.png" alt="Create" width="16" height="16">
+                        <img src="icons/plus.png" alt="Create" width="16" height="16">
                     </button>
                 </div>
             </div>
@@ -52,7 +52,7 @@
         <div class="spacer"></div>
 
         <div class="sd-info card">
-            <h3><img src="/icons/storage.png" alt="Storage" width="16" height="16"> Storage</h3>
+            <h3><img src="icons/storage.png" alt="Storage" width="16" height="16"> Storage</h3>
             <div id="sdCardInfo">Loading...</div>
         </div>
     </aside>
@@ -66,14 +66,14 @@
             <div class="header-actions">
                 <div class="view-toggles">
                     <button id="listViewBtn" class="view-btn active" title="List View">
-                        <img src="/icons/view_list.png" alt="List" width="20" height="20">
+                        <img src="icons/view_list.png" alt="List" width="20" height="20">
                     </button>
                     <button id="gridViewBtn" class="view-btn" title="Grid View">
-                        <img src="/icons/view_grid.png" alt="Grid" width="20" height="20">
+                        <img src="icons/view_grid.png" alt="Grid" width="20" height="20">
                     </button>
                 </div>
                 <button id="refreshBtn" class="btn-secondary">
-                    <img src="/icons/refresh.png" alt="Refresh" width="16" height="16"> Refresh
+                    <img src="icons/refresh.png" alt="Refresh" width="16" height="16"> Refresh
                 </button>
             </div>
         </header>
@@ -82,10 +82,10 @@
             <span class="selected-count" id="selectedCount">0 selected</span>
             <div class="batch-right">
                 <button id="batchDownloadBtn" class="btn-small">
-                    <img src="/icons/download.png" alt="Download" width="16" height="16">
+                    <img src="icons/download.png" alt="Download" width="16" height="16">
                 </button>
                 <button id="batchDeleteBtn" class="btn-small btn-danger">
-                    <img src="/icons/delete.png" alt="Delete" width="16" height="16">
+                    <img src="icons/delete.png" alt="Delete" width="16" height="16">
                 </button>
                 <button id="deselectAllBtn" class="btn-link">Clear</button>
             </div>

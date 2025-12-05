@@ -1,5 +1,5 @@
-import { state, updateBatchActions, setStatus, updateSDInfo } from '/js/uiManager.js';
-import { refreshFileList } from '/js/fileManager.js';
+import { state, updateBatchActions, setStatus, updateSDInfo } from './uiManager.js';
+import { refreshFileList } from './fileManager.js';
 
 function toggleFileSelection(filePath, checkbox) {
     if (checkbox.checked) {

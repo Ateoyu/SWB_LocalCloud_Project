@@ -17,12 +17,6 @@ body {
     overflow: hidden;
 }
 
-/* --- Layout --- */
-.app-container {
-    display: flex;
-    height: 100vh;
-}
-
 /* --- Mobile Header --- */
 .mobile-header {
     display: none;
@@ -36,21 +30,29 @@ body {
     width: 100%;
     height: 60px;
     z-index: 50;
+
+    .icon-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text-main);
+
+        img { /* Fix for mobile menu icon size */
+            width: 24px;
+            height: 24px;
+        }
+    }
+    .mobile-brand {
+        font-weight: 600;
+        margin-left: 15px;
+        font-size: 1.1rem;
+    }
 }
-.mobile-brand {
-    font-weight: 600;
-    margin-left: 15px;
-    font-size: 1.1rem;
-}
-.icon-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text-main);
-}
-.icon-btn img { /* Fix for mobile menu icon size */
-    width: 24px;
-    height: 24px;
+
+/* --- Layout --- */
+.app-container {
+    display: flex;
+    height: 100vh;
 }
 
 /* --- Sidebar --- */
@@ -64,25 +66,31 @@ body {
     gap: 20px;
     transition: transform 0.3s ease;
     z-index: 100;
-}
 
-.brand-icon {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
-}
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        color: var(--primary);
 
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
-    color: var(--primary);
-}
-.brand h2 {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--text-main);
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+        .brand h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 10px 0;
+        }
+    }
 }
 
 .upload-btn-primary {
@@ -275,29 +283,6 @@ th {
     z-index: 10;
 }
 
-/* Icons in List View (Fixed Size) */
-.file-icon-fa {
-    margin-right: 12px;
-    font-size: 1.1rem; /* Fixed: Smaller size for list view */
-    width: 20px;
-    height: 20px; /* Fixed: Reserves vertical space to prevent jump */
-    display: inline-block;
-    line-height: 20px;
-    text-align: center;
-    color: var(--text-muted);
-    vertical-align: middle;
-}
-.fa-folder {
-    color: #f8d775;
-    text-shadow: 0 1px 0 rgba(0,0,0,0.1);
-} /* Folder Color */
-.fa-file-image-o {
-    color: #9a6dd7;
-}
-.fa-file-pdf-o {
-    color: #cf222e;
-}
-
 /* File Link Button styling */
 .file-link-btn {
     background: none;
@@ -313,6 +298,16 @@ th {
 }
 .file-link-btn:hover {
     color: var(--primary);
+}
+
+#nav-to-parent-btw {
+    width: 100%;
+    height: 100%;
+}
+
+#nav-to-folder-btn {
+    width: 100%;
+    height: 100%;
 }
 
 /* --- GRID VIEW MODE (Reverted to Text in Box) --- */

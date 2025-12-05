@@ -1,7 +1,7 @@
-import { refreshFileList, createFolder, uploadFile } from '/js/fileManager.js';
-import { updateSDInfo } from '/js/uiManager.js';
-import { toggleSelectAll, selectAllFiles, deselectAllFiles, downloadSelected, deleteSelected } from '/js/batchActions.js';
-import { navigateToFolder, navigateToParent } from '/js/navigationManager.js';
+import { refreshFileList, createFolder, uploadFile } from './fileManager.js';
+import { updateSDInfo } from './uiManager.js';
+import { toggleSelectAll, selectAllFiles, deselectAllFiles, downloadSelected, deleteSelected } from './batchActions.js';
+import { navigateToFolder, navigateToParent } from './navigationManager.js';
 
 window.navigateToFolder = navigateToFolder;
 window.navigateToParent = navigateToParent;
@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const selectAllBtn = document.getElementById('selectAllBtn');
     const deselectAllBtn = document.getElementById('deselectAllBtn');
     const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    const navToParentBtn = document.getElementById('navToParentBtn');
 
     if (createFolderBtn) {
         createFolderBtn.addEventListener('click', createFolder);
@@ -80,6 +81,10 @@ document.addEventListener('DOMContentLoaded', function () {
         selectAllCheckbox.addEventListener('change', function() {
             toggleSelectAll(this.checked);
         });
+    }
+
+    if (navToParentBtn) {
+        navToParentBtn.addEventListener('click', navigateToParent)
     }
 
     refreshFileList();

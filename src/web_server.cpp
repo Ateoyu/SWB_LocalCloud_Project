@@ -19,9 +19,12 @@ void initAP() {
     }
     delay(100);
     Serial.println("Access Point started");
-    Serial.print("SSID: "); Serial.println(ssid);
-    Serial.print("Password: "); Serial.println(password);
-    Serial.print("IP address: "); Serial.println(WiFi.softAPIP());
+    Serial.print("SSID: ");
+    Serial.println(ssid);
+    Serial.print("Password: ");
+    Serial.println(password);
+    Serial.print("IP address: ");
+    Serial.println(WiFi.softAPIP());
 }
 
 void setupWebServer() {
@@ -33,6 +36,17 @@ void setupWebServer() {
         String path = request->url();
         request->send(LittleFS, path, "application/javascript");
     });
+
+    server.on("/icons/*", HTTP_GET, [](AsyncWebServerRequest *request) {
+        String path = request->url();
+        request->send(LittleFS, path, "image/png");
+    });
+
+    server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request) {
+        Serial.println("/styles/style.css");
+        request->send(LittleFS, "/styles/style.css", "text/css");
+    });
+
     server.on("/list", HTTP_GET, handleListFiles);
     server.on("/sdinfo", HTTP_GET, handleSDInfo);
     server.on("/download", HTTP_GET, handleDownload);

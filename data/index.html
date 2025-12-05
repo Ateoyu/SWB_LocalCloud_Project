@@ -3,65 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESP32-S3 Cloud Storage</title>
+    <title>ESP Drive</title>
+    <link rel="stylesheet" href="/style.css">
     <script src="js/main.js" type="module"></script>
-
-    <script>
-        console.log('Base URL:', window.location.href);
-        console.log('Script URL:', document.currentScript?.src);
-    </script>
-    <script src="js/main.js" type="module"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-<div class="container">
-    <h1>ESP32-S3 Cloud Storage</h1>
 
-    <div id="currentPath" class="path-display">Current Path:</div>
-
-    <div class="sd-info">
-        <h3>SD Card Info</h3>
-        <div id="sdCardInfo">Loading...</div>
-    </div>
-
-    <div class="folder-creation">
-        <h3>Create New Folder</h3>
-        <input type="text" id="folderName" placeholder="Folder name">
-        <button id="createFolderBtn">Create Folder</button>
-    </div>
-
-    <div class="upload-area">
-        <h2>Upload Files</h2>
-        <label for="fileInput" class="upload-label">Choose Files</label>
-        <input type="file" id="fileInput" multiple>
-        <div class="progress-bar">
-            <div class="progress" id="progress"></div>
-        </div>
-        <div id="status" class="status">Ready to upload...</div>
-    </div>
-
-    <div id="batchActions" class="batch-actions">
-        <span class="selected-count" id="selectedCount">0 selected</span>
-        <button id="batchDownloadBtn">Download Selected</button>
-        <button id="batchDeleteBtn">Delete Selected</button>
-        <button id="selectAllBtn">Select All</button>
-        <button id="deselectAllBtn">Deselect All</button>
-    </div>
-
-    <h2>Files on SD Card</h2>
-    <div id="fileList">
-        <table>
-            <thead>
-            <tr>
-                <th><input type="checkbox" id="selectAllCheckbox"></th>
-                <th>Name</th>
-            </tr>
-            </thead>
-            <tbody id="fileTable">
-            </tbody>
-        </table>
-    </div>
-
-    <button id="refreshBtn" class="refresh-btn">Refresh List</button>
+<div class="mobile-header">
+    <button id="menuToggle" class="icon-btn">
+        <img src="/icons/menu.png" alt="Menu" width="24" height="24">
+    </button>
+    <span class="mobile-brand">ESP Drive</span>
 </div>
+
+<div class="app-container">
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
+            <img src="/icons/cloud_logo.png" class="brand-icon" alt="Logo">
+            <h2>ESP Drive</h2>
+        </div>
+
+        <div class="action-panel">
+            <div class="upload-area">
+                <label for="fileInput" class="upload-btn-primary">
+                    <img src="/icons/upload.png" alt="Upload" class="icon-on-btn"> Upload
+                </label>
+                <input type="file" id="fileInput" multiple hidden>
+                <div id="status" class="status-text">Ready</div>
+                <div class="progress-bar">
+                    <div class="progress" id="progress"></div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="folder-creation">
+                <h4>New Folder</h4>
+                <div class="input-group">
+                    <input type="text" id="folderName" placeholder="Name...">
+                    <button id="createFolderBtn" class="btn-icon">
+                        <img src="/icons/plus.png" alt="Create" width="16" height="16">
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="spacer"></div>
+
+        <div class="sd-info card">
+            <h3><img src="/icons/storage.png" alt="Storage" width="16" height="16"> Storage</h3>
+            <div id="sdCardInfo">Loading...</div>
+        </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div id="currentPath" class="path-display">/</div>
+
+            <div class="header-actions">
+                <div class="view-toggles">
+                    <button id="listViewBtn" class="view-btn active" title="List View">
+                        <img src="/icons/view_list.png" alt="List" width="20" height="20">
+                    </button>
+                    <button id="gridViewBtn" class="view-btn" title="Grid View">
+                        <img src="/icons/view_grid.png" alt="Grid" width="20" height="20">
+                    </button>
+                </div>
+                <button id="refreshBtn" class="btn-secondary">
+                    <img src="/icons/refresh.png" alt="Refresh" width="16" height="16"> Refresh
+                </button>
+            </div>
+        </header>
+
+        <div id="batchActions" class="batch-actions">
+            <span class="selected-count" id="selectedCount">0 selected</span>
+            <div class="batch-right">
+                <button id="batchDownloadBtn" class="btn-small">
+                    <img src="/icons/download.png" alt="Download" width="16" height="16">
+                </button>
+                <button id="batchDeleteBtn" class="btn-small btn-danger">
+                    <img src="/icons/delete.png" alt="Delete" width="16" height="16">
+                </button>
+                <button id="deselectAllBtn" class="btn-link">Clear</button>
+            </div>
+        </div>
+
+        <div class="file-list-wrapper list-view" id="fileContainer">
+            <table>
+                <thead id="tableHeader">
+                <tr>
+                    <th width="40"><input type="checkbox" id="selectAllCheckbox"></th>
+                    <th>Name</th>
+                </tr>
+                </thead>
+                <tbody id="fileTable">
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
 </body>
 </html>

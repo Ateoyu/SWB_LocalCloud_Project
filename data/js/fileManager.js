@@ -13,7 +13,6 @@ function refreshFileList() {
             const fileTable = document.getElementById('fileTable');
             if (fileTable) {
                 fileTable.innerHTML = html;
-                // Set up event listeners for dynamically created buttons
                 setupDynamicEventListeners();
             }
             setStatus('Files loaded!');

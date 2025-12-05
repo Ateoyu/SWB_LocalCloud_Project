@@ -1,0 +1,463 @@
+:root {
+    --primary: #0061FE;
+    --bg-app: #F7F9FA;
+    --bg-sidebar: #FFFFFF;
+    --border: #e0e4e9;
+    --text-main: #1E1919;
+    --text-muted: #6e7781;
+    --radius: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-app);
+    color: var(--text-main);
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* --- Layout --- */
+.app-container {
+    display: flex;
+    height: 100vh;
+}
+
+/* --- Mobile Header --- */
+.mobile-header {
+    display: none;
+    align-items: center;
+    padding: 0 20px;
+    background: white;
+    border-bottom: 1px solid var(--border);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    z-index: 50;
+}
+.mobile-brand {
+    font-weight: 600;
+    margin-left: 15px;
+    font-size: 1.1rem;
+}
+.icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-main);
+}
+.icon-btn img { /* Fix for mobile menu icon size */
+    width: 24px;
+    height: 24px;
+}
+
+/* --- Sidebar --- */
+.sidebar {
+    width: 260px;
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    transition: transform 0.3s ease;
+    z-index: 100;
+}
+
+.brand-icon {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    color: var(--primary);
+}
+.brand h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.upload-btn-primary {
+    background: var(--primary);
+    color: white;
+    padding: 12px;
+    border-radius: var(--radius);
+    text-align: center;
+    cursor: pointer;
+    display: block;
+    font-weight: 500;
+}
+.upload-btn-primary:hover {
+    background: #0052d4;
+}
+.icon-on-btn { /* Fix for upload button icon size */
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.divider {
+    height: 1px;
+    background: var(--border);
+    margin: 10px 0;
+}
+.input-group {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+}
+.input-group input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+}
+.btn-icon {
+    background: white;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    width: 35px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+.spacer {
+    flex: 1;
+}
+.sd-info.card {
+    background: #f0f2f5;
+    padding: 15px;
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+}
+.status-text {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 8px;
+}
+
+/* --- Main Content --- */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 32px;
+    overflow-y: auto;
+    position: relative;
+}
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+.path-display {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.view-toggles {
+    display: flex;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px;
+}
+.view-btn {
+    background: none;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--text-muted);
+}
+.view-btn.active {
+    background: #eee;
+    color: var(--text-main);
+}
+.btn-secondary {
+    background: white;
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-main);
+}
+.btn-secondary img { /* Fix for refresh icon size */
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+}
+
+/* --- Batch Actions --- */
+.batch-actions {
+    background: var(--text-main);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    opacity: 0.95;
+}
+.batch-right {
+    display: flex;
+    gap: 10px;
+}
+.btn-small {
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    background: #333;
+    color: white;
+}
+.btn-small img { /* Fix for batch action icons size */
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+}
+.btn-danger {
+    background: #cf222e;
+}
+.btn-link {
+    background: none;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+/* --- FILE LIST (Base Table Styles) --- */
+.file-list-wrapper {
+    background: white;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    flex: 1;
+    overflow-y: auto;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+th, td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+}
+th {
+    background: #fafbfc;
+    font-weight: 500;
+    color: #6e7781;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* Icons in List View (Fixed Size) */
+.file-icon-fa {
+    margin-right: 12px;
+    font-size: 1.1rem; /* Fixed: Smaller size for list view */
+    width: 20px;
+    height: 20px; /* Fixed: Reserves vertical space to prevent jump */
+    display: inline-block;
+    line-height: 20px;
+    text-align: center;
+    color: var(--text-muted);
+    vertical-align: middle;
+}
+.fa-folder {
+    color: #f8d775;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.1);
+} /* Folder Color */
+.fa-file-image-o {
+    color: #9a6dd7;
+}
+.fa-file-pdf-o {
+    color: #cf222e;
+}
+
+/* File Link Button styling */
+.file-link-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+}
+.file-link-btn:hover {
+    color: var(--primary);
+}
+
+/* --- GRID VIEW MODE (Reverted to Text in Box) --- */
+.file-list-wrapper.grid-view {
+    background: transparent;
+    border: none;
+    overflow: visible;
+}
+.file-list-wrapper.grid-view table {
+    display: block;
+}
+.file-list-wrapper.grid-view thead {
+    display: none;
+}
+.file-list-wrapper.grid-view tbody {
+    display: grid;
+    /* Create responsive columns that fill the space */
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 15px;
+    padding-bottom: 20px;
+}
+
+.file-list-wrapper.grid-view tr {
+    /* Reverting back to a single card structure */
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 15px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    height: 130px; /* Fixed height for uniformity */
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.file-list-wrapper.grid-view tr:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    border-color: var(--primary);
+}
+
+.file-list-wrapper.grid-view td {
+    border: none;
+    padding: 0;
+    width: 100%;
+    display: block;
+}
+
+/* Position the checkbox in Grid View */
+.file-list-wrapper.grid-view td:first-child {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: auto;
+    z-index: 2;
+}
+
+/* Style the content in Grid View */
+.file-list-wrapper.grid-view .file-link-btn {
+    /* This is the key change: stack icon and text */
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    height: 100%;
+}
+
+/* Reverting Icons to a sensible size (Fixing original issue) */
+.file-list-wrapper.grid-view .file-icon-fa {
+    font-size: 2.0rem; /* Fixed: Appropriate size for grid view */
+    margin-right: 0;
+    margin-bottom: 8px; /* Added spacing between icon and text */
+    width: auto;
+    height: auto;
+}
+
+/* Image previews in grid (Kept the size fix) */
+.file-list-wrapper.grid-view img.preview-img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    max-width: 60px;
+    max-height: 60px;
+}
+
+/* Filename text styling (inside the button) */
+.file-list-wrapper.grid-view .file-link-btn > span {
+    display: block; /* Ensure the span stacks below the icon */
+    font-size: 0.85rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%; /* Allows it to take the full width of the card */
+    padding: 0 5px; /* Added minor padding for visual comfort */
+}
+
+
+/* --- Mobile Responsiveness --- */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    z-index: 90;
+}
+
+@media (max-width: 768px) {
+    .app-container {
+        flex-direction: column;
+        padding-top: 60px;
+    }
+    .mobile-header {
+        display: flex;
+    }
+
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    }
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    .sidebar-overlay.open {
+        display: block;
+    }
+
+    .main-content {
+        padding: 15px;
+    }
+    .header-actions {
+        flex-direction: row-reverse;
+    }
+
+    .file-list-wrapper.grid-view tbody {
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    }
+}

@@ -7,6 +7,38 @@ window.navigateToFolder = navigateToFolder;
 window.navigateToParent = navigateToParent;
 
 document.addEventListener('DOMContentLoaded', function () {
+    //hamburger
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    function toggleMenu() {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('open');
+    }
+
+    menuToggle.addEventListener('click', toggleMenu);
+    overlay.addEventListener('click', toggleMenu);
+
+// 2. Grid/List View Toggle
+    const listViewBtn = document.getElementById('listViewBtn');
+    const gridViewBtn = document.getElementById('gridViewBtn');
+    const fileContainer = document.getElementById('fileContainer');
+
+    listViewBtn.addEventListener('click', () => {
+        fileContainer.classList.remove('grid-view');
+        fileContainer.classList.add('list-view');
+        listViewBtn.classList.add('active');
+        gridViewBtn.classList.remove('active');
+    });
+
+    gridViewBtn.addEventListener('click', () => {
+        fileContainer.classList.remove('list-view');
+        fileContainer.classList.add('grid-view');
+        gridViewBtn.classList.add('active');
+        listViewBtn.classList.remove('active');
+    });
+
     const createFolderBtn = document.getElementById('createFolderBtn');
     const fileInput = document.getElementById('fileInput');
     const refreshBtn = document.getElementById('refreshBtn');

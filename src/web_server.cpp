@@ -29,8 +29,9 @@ void setupWebServer() {
         Serial.println("Serving index.html");
         request->send(LittleFS, "/index.html", "text/html");
     });
-    server.on("/script.js", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->send(LittleFS, "/script.js", "application/javascript");
+    server.on("/js/*", HTTP_GET, [](AsyncWebServerRequest *request) {
+        String path = request->url();
+        request->send(LittleFS, path, "application/javascript");
     });
     server.on("/list", HTTP_GET, handleListFiles);
     server.on("/sdinfo", HTTP_GET, handleSDInfo);

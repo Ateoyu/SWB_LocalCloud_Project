@@ -4,8 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ESP32-S3 Cloud Storage</title>
-<!--    <link rel="stylesheet" href="style.css">-->
-    <script src="script.js"></script>
+    <script src="js/main.js" type="module"></script>
+
+    <script>
+        console.log('Base URL:', window.location.href);
+        console.log('Script URL:', document.currentScript?.src);
+    </script>
+    <script src="js/main.js" type="module"></script>
 </head>
 <body>
 <div class="container">
@@ -36,10 +41,10 @@
 
     <div id="batchActions" class="batch-actions">
         <span class="selected-count" id="selectedCount">0 selected</span>
-        <button onclick="downloadSelected()">Download Selected</button>
-        <button onclick="deleteSelected()">Delete Selected</button>
-        <button onclick="selectAllFiles()">Select All</button>
-        <button onclick="deselectAllFiles()">Deselect All</button>
+        <button id="batchDownloadBtn">Download Selected</button>
+        <button id="batchDeleteBtn">Delete Selected</button>
+        <button id="selectAllBtn">Select All</button>
+        <button id="deselectAllBtn">Deselect All</button>
     </div>
 
     <h2>Files on SD Card</h2>
@@ -47,7 +52,7 @@
         <table>
             <thead>
             <tr>
-                <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)"></th>
+                <th><input type="checkbox" id="selectAllCheckbox"></th>
                 <th>Name</th>
             </tr>
             </thead>
@@ -56,7 +61,7 @@
         </table>
     </div>
 
-    <button class="refresh-btn" onclick="refreshFileList()">Refresh List</button>
+    <button id="refreshBtn" class="refresh-btn">Refresh List</button>
 </div>
 </body>
 </html>

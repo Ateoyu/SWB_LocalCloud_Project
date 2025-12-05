@@ -81,6 +81,7 @@ String getFileListHTML(String currentPath) {
         }
         if (file.isDirectory()) {
             html += "<tr>";
+            html += "<td><input type='checkbox' data-path=\"" + cleanPath + "\"></td>";
             html += "<td><button onclick=\"navigateToFolder('" + currentPath + "/" + filename + "')\">📁 " + filename + "</button></td>";
             html += "</tr>";
         } else {

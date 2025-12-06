@@ -51,15 +51,20 @@ String getFileListHTML(String currentPath) {
     String html = "";
     File dir = SD.open(currentPath);
     if (!dir) {
-        return "<tr><td colspan='2'>Failed to open directory: " + currentPath + "</td></tr>";
+        return String("<div class='file-item error'><div class='file-card'>Failed to open directory: ") + currentPath + "</div></div>";
     }
+
+    // Add back navigation tile if not at root
     if (currentPath != "/") {
-        html += "<tr>";
-        html += "<td><input type='checkbox' disabled></td>";
-        html += "<td><img src='/icons/back.png' class='file-icon-img' alt='Back'>";
-        html += "<td><button onclick='navigateToParent()'>..</button></td>";
-        html += "</tr>";
+        html += "<div class='file-item' data-type='back'>";
+        html += "<input type='checkbox' class='select-checkbox' disabled>";
+        html += "<button class='file-card' onclick='navigateToParent()'>";
+        html += "<img src='/icons/back.png' class='file-icon-img' alt='Back'>";
+        html += "<span class='file-name'>..</span>";
+        html += "</button>";
+        html += "</div>";
     }
+
     File file = dir.openNextFile();
     while (file) {
         String filename = String(file.name());
@@ -67,46 +72,51 @@ String getFileListHTML(String currentPath) {
             file = dir.openNextFile();
             continue;
         }
+
         String fullPath = currentPath;
         if (fullPath != "/" && !fullPath.endsWith("/")) {
             fullPath += "/";
         }
         fullPath += filename;
+
         String cleanPath = fullPath;
         cleanPath.replace("\"", "&quot;");
+
         String fileExt = "";
         int dotIndex = filename.lastIndexOf('.');
         if (dotIndex != -1) {
             fileExt = filename.substring(dotIndex);
             fileExt.toLowerCase();
         }
+
         if (file.isDirectory()) {
-            html += "<tr>";
-            html += "<td><input type='checkbox' data-path=\"" + cleanPath + "\"></td>";
-            html += "<td><img src='/icons/folder.png' class='file-icon-img' alt='Folder'>";
-            html += "<td><button onclick=\"navigateToFolder('" + currentPath + "/" + filename + "')\">" + filename + "</button></td>";
-            html += "</tr>";
+            html += "<div class='file-item' data-type='folder'>";
+            html += "<input type='checkbox' class='select-checkbox' data-path=\"" + cleanPath + "\">";
+            html += "<button class='file-card' onclick=\"navigateToFolder('" + currentPath + "/" + filename + "')\">";
+            html += "<img src='/icons/folder.png' class='file-icon-img' alt='Folder'>";
+            html += "<span class='file-name'>" + filename + "</span>";
+            html += "</button>";
+            html += "</div>";
         } else {
             bool isImage = (fileExt == ".jpg" || fileExt == ".jpeg" ||
                             fileExt == ".png" || fileExt == ".gif" ||
                             fileExt == ".bmp" || fileExt == ".webp");
             if (isImage) {
-                html += "<tr>";
-                html += "<td><input type='checkbox' data-path=\"" + cleanPath + "\"></td>";
-                html += "<td style='display: flex; align-items: center; gap: 10px;'>";
-                html += "<img src='/preview?path=" + cleanPath + "' class='preview-img'";
-                html += "onerror=\"this.style.display='none'\" ";
-                html += "alt='' ";
-                html += "onclick=\"showFullImage('" + cleanPath + "')\">";
-                html += "<td>" + filename + "</td>";
-                html += "</td>";
-                html += "</tr>";
+                html += "<div class='file-item' data-type='image'>";
+                html += "<input type='checkbox' class='select-checkbox' data-path=\"" + cleanPath + "\">";
+                html += "<div class='file-card'>";
+                html += "<img src='/preview?path=" + cleanPath + "' class='preview-img' alt='' onerror=\"this.style.display='none'\" data-path=\"" + cleanPath + "\">";
+                html += "<span class='file-name'>" + filename + "</span>";
+                html += "</div>";
+                html += "</div>";
             } else {
-                html += "<tr>";
-                html += "<td><input type='checkbox' data-path=\"" + cleanPath + "\"></td>";
-                html += "<td><img src='/icons/file.png' class='file-icon-img' alt='File'>";
-                html += "<td>" + filename + "</td>";
-                html += "</tr>";
+                html += "<div class='file-item' data-type='file'>";
+                html += "<input type='checkbox' class='select-checkbox' data-path=\"" + cleanPath + "\">";
+                html += "<div class='file-card'>";
+                html += "<img src='/icons/file.png' class='file-icon-img' alt='File'>";
+                html += "<span class='file-name'>" + filename + "</span>";
+                html += "</div>";
+                html += "</div>";
             }
         }
         file = dir.openNextFile();

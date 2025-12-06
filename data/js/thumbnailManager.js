@@ -45,15 +45,17 @@ async function getThumbnail(imagePath, imageUrl) {
 }
 
 function updateFileListWithThumbnails() {
-    const rows = document.querySelectorAll('#fileTable tr');
+    const items = document.querySelectorAll('#fileTable .file-item');
 
-    rows.forEach(async (row) => {
-        const img = row.querySelector('.preview-img');
+    items.forEach(async (item) => {
+        const img = item.querySelector('.preview-img');
         if (!img) return;
 
-        const imagePath = img.getAttribute('data-path') ||
-            row.querySelector('input[type="checkbox"]').dataset.path;
+        const checkbox = item.querySelector('input.select-checkbox');
+        const imagePath = img.getAttribute('data-path') || checkbox?.dataset.path;
         const originalSrc = img.src;
+
+        if (!imagePath) return;
 
         img.classList.add('loading');
 
@@ -62,8 +64,9 @@ function updateFileListWithThumbnails() {
 
             if (thumbnail) {
                 img.src = thumbnail;
-                img.style.width = '32px';
-                img.style.height = '32px';
+                // size is styled via CSS; ensure fallback here
+                img.style.width = img.style.width || '72px';
+                img.style.height = img.style.height || '72px';
                 img.style.objectFit = 'cover';
             }
         } catch (error) {

@@ -9,9 +9,9 @@ function refreshFileList() {
     fetch('/list?path=' + encodeURIComponent(state.currentPath))
         .then(response => response.text())
         .then(html => {
-            const fileTable = document.getElementById('fileTable');
-            if (fileTable) {
-                fileTable.innerHTML = html;
+            const fileGrid = document.getElementById('fileTable');
+            if (fileGrid) {
+                fileGrid.innerHTML = html;
                 setupDynamicEventListeners();
             }
             setStatus('Files loaded!');
@@ -25,9 +25,11 @@ function refreshFileList() {
             }
 
             setTimeout(() => {
-                document.querySelectorAll('#fileTable input[type="checkbox"]').forEach(checkbox => {
+                document.querySelectorAll('#fileTable input.select-checkbox').forEach(checkbox => {
                     checkbox.addEventListener('change', function() {
-                        toggleFileSelection(this.dataset.path, this);
+                        if (this.dataset.path) {
+                            toggleFileSelection(this.dataset.path, this);
+                        }
                     });
                 });
 
@@ -41,34 +43,23 @@ function refreshFileList() {
 }
 
 function setupDynamicEventListeners() {
-    // Handle folder navigation buttons
-    document.querySelectorAll('#fileTable button[onclick*="navigateToFolder"]').forEach(button => {
+    // Convert inline onclick handlers to JS events (for security and SPA feel)
+    // Folder navigation
+    document.querySelectorAll('#fileTable .file-item [onclick*="navigateToFolder"]').forEach(button => {
         const onclick = button.getAttribute('onclick');
-        const match = onclick.match(/navigateToFolder\('([^']+)'\)/);
+        const match = onclick && onclick.match(/navigateToFolder\('([^']+)'\)/);
         if (match) {
             button.removeAttribute('onclick');
             button.addEventListener('click', () => {
-                navigateToFolder(match[1]);
+                window.navigateToFolder && window.navigateToFolder(match[1]);
             });
         }
     });
 
-    // Handle parent navigation button
-    document.querySelectorAll('#fileTable button[onclick="navigateToParent()"]').forEach(button => {
+    // Parent navigation
+    document.querySelectorAll('#fileTable .file-item [onclick="navigateToParent()"]').forEach(button => {
         button.removeAttribute('onclick');
-        button.addEventListener('click', navigateToParent);
-    });
-
-    // Handle delete file/folder buttons if you have them
-    document.querySelectorAll('#fileTable button[onclick*="deleteFile"]').forEach(button => {
-        const onclick = button.getAttribute('onclick');
-        const match = onclick.match(/deleteFile\('([^']+)'\)/);
-        if (match) {
-            button.removeAttribute('onclick');
-            button.addEventListener('click', () => {
-                deleteFile(match[1]);
-            });
-        }
+        button.addEventListener('click', () => window.navigateToParent && window.navigateToParent());
     });
 }
 

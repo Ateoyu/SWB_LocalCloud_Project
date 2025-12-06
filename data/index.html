@@ -64,14 +64,10 @@
             <div id="currentPath" class="path-display">/</div>
 
             <div class="header-actions">
-                <div class="view-toggles">
-                    <button id="listViewBtn" class="view-btn active" title="List View">
-                        <img src="icons/view_list.png" alt="List" width="20" height="20">
-                    </button>
-                    <button id="gridViewBtn" class="view-btn" title="Grid View">
-                        <img src="icons/view_grid.png" alt="Grid" width="20" height="20">
-                    </button>
-                </div>
+                <label class="btn-secondary" style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="selectAllCheckbox">
+                    Select All
+                </label>
                 <button id="refreshBtn" class="btn-secondary">
                     <img src="icons/refresh.png" alt="Refresh" width="16" height="16"> Refresh
                 </button>
@@ -91,17 +87,8 @@
             </div>
         </div>
 
-        <div class="file-list-wrapper list-view" id="fileContainer">
-            <table>
-                <thead id="tableHeader">
-                <tr>
-                    <th width="40"><input type="checkbox" id="selectAllCheckbox"></th>
-                    <th>Name</th>
-                </tr>
-                </thead>
-                <tbody id="fileTable">
-                </tbody>
-            </table>
+        <div class="file-list-wrapper grid-only" id="fileContainer">
+            <div id="fileTable" class="file-grid"></div>
         </div>
     </main>
 </div>

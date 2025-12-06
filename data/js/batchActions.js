@@ -8,8 +8,8 @@ function toggleFileSelection(filePath, checkbox) {
         state.selectedFiles.delete(filePath);
     }
 
-    const totalCheckboxes = document.querySelectorAll('#fileTable input[type="checkbox"]:not(:disabled)').length;
-    const checkedCount = document.querySelectorAll('#fileTable input[type="checkbox"]:checked:not(:disabled)').length;
+    const totalCheckboxes = document.querySelectorAll('#fileTable input.select-checkbox:not(:disabled)').length;
+    const checkedCount = document.querySelectorAll('#fileTable input.select-checkbox:checked:not(:disabled)').length;
     const selectAllCheckbox = document.getElementById('selectAllCheckbox');
 
     if (selectAllCheckbox) {
@@ -21,7 +21,7 @@ function toggleFileSelection(filePath, checkbox) {
 }
 
 function toggleSelectAll(checked) {
-    const checkboxes = document.querySelectorAll('#fileTable input[type="checkbox"]:not(:disabled)');
+    const checkboxes = document.querySelectorAll('#fileTable input.select-checkbox:not(:disabled)');
     checkboxes.forEach(checkbox => {
         checkbox.checked = checked;
         const filePath = checkbox.dataset.path;
@@ -35,7 +35,7 @@ function toggleSelectAll(checked) {
 }
 
 function selectAllFiles() {
-    const checkboxes = document.querySelectorAll('#fileTable input[type="checkbox"]:not(:disabled)');
+    const checkboxes = document.querySelectorAll('#fileTable input.select-checkbox:not(:disabled)');
     checkboxes.forEach(checkbox => {
         checkbox.checked = true;
         state.selectedFiles.add(checkbox.dataset.path);
@@ -48,7 +48,7 @@ function selectAllFiles() {
 }
 
 function deselectAllFiles() {
-    const checkboxes = document.querySelectorAll('#fileTable input[type="checkbox"]:not(:disabled)');
+    const checkboxes = document.querySelectorAll('#fileTable input.select-checkbox:not(:disabled)');
     checkboxes.forEach(checkbox => {
         checkbox.checked = false;
         state.selectedFiles.delete(checkbox.dataset.path);
@@ -103,9 +103,9 @@ function deleteSelected() {
     state.selectedFiles.forEach(filePath => {
         const filename = filePath.split('/').pop();
         const parentPath = filePath.substring(0, filePath.lastIndexOf('/'));
-        const checkbox = document.querySelector(`input[data-path="${CSS.escape(filePath)}"]`);
-        const row = checkbox?.closest('tr');
-        const isFolder = row?.textContent.includes('📁');
+        const checkbox = document.querySelector(`input.select-checkbox[data-path="${CSS.escape(filePath)}"]`);
+        const row = checkbox?.closest('.file-item');
+        const isFolder = row?.dataset.type === 'folder';
 
         const url = isFolder
             ? `/deleteFolder?name=${encodeURIComponent(filename)}&path=${encodeURIComponent(parentPath)}`

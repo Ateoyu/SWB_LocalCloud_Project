@@ -20,24 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
     menuToggle.addEventListener('click', toggleMenu);
     overlay.addEventListener('click', toggleMenu);
 
-// 2. Grid/List View Toggle
-    const listViewBtn = document.getElementById('listViewBtn');
-    const gridViewBtn = document.getElementById('gridViewBtn');
-    const fileContainer = document.getElementById('fileContainer');
-
-    listViewBtn.addEventListener('click', () => {
-        fileContainer.classList.remove('grid-view');
-        fileContainer.classList.add('list-view');
-        listViewBtn.classList.add('active');
-        gridViewBtn.classList.remove('active');
-    });
-
-    gridViewBtn.addEventListener('click', () => {
-        fileContainer.classList.remove('list-view');
-        fileContainer.classList.add('grid-view');
-        gridViewBtn.classList.add('active');
-        listViewBtn.classList.remove('active');
-    });
+    // Grid-only: no view toggle controls
 
     const createFolderBtn = document.getElementById('createFolderBtn');
     const fileInput = document.getElementById('fileInput');

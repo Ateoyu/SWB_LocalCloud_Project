@@ -319,6 +319,85 @@ th {
 .file-list-wrapper.grid-view table {
     display: block;
 }
+
+/* --- GRID ONLY (DIV-BASED) --- */
+.file-list-wrapper.grid-only {
+    background: transparent;
+    border: none;
+}
+
+.file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 16px;
+    padding: 8px;
+}
+
+.file-item {
+    position: relative;
+}
+
+.file-item .select-checkbox {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 2;
+}
+
+.file-card {
+    width: 100%;
+    height: 140px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    cursor: default;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+.file-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,.08);
+    border-color: var(--primary);
+}
+
+.file-card img.file-icon-img {
+    width: 36px;
+    height: 36px;
+}
+
+.file-card img.preview-img {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.file-card .file-name {
+    font-size: .9rem;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .file-grid {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    }
+    .file-card {
+        height: 120px;
+    }
+    .file-card img.preview-img {
+        width: 60px;
+        height: 60px;
+    }
+}
 .file-list-wrapper.grid-view thead {
     display: none;
 }

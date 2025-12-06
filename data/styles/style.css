@@ -408,6 +408,18 @@ th {
     padding: 0 5px; /* Added minor padding for visual comfort */
 }
 
+.file-icon-img {
+    width: 32px;
+    height: 32px;
+}
+
+.preview-img {
+    margin: 0;
+    justify-self: center;
+    align-self: center;
+}
+
+
 
 /* --- Mobile Responsiveness --- */
 .sidebar-overlay {

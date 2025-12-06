@@ -48,7 +48,7 @@ function updateFileListWithThumbnails() {
     const rows = document.querySelectorAll('#fileTable tr');
 
     rows.forEach(async (row) => {
-        const img = row.querySelector('img');
+        const img = row.querySelector('.preview-img');
         if (!img) return;
 
         const imagePath = img.getAttribute('data-path') ||

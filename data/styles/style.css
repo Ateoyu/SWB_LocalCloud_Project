@@ -333,6 +333,47 @@ th {
     padding: 8px;
 }
 
+/* List mode (1 entry per row) using the same markup */
+.file-grid.list-mode {
+    grid-template-columns: 1fr;
+    gap: 8px;
+}
+
+.file-grid.list-mode .file-item {
+    min-height: 56px;
+}
+
+.file-grid.list-mode .select-checkbox {
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.file-grid.list-mode .file-card {
+    height: 56px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 8px 12px 8px 44px; /* leave space for checkbox on the left */
+}
+
+.file-grid.list-mode .file-card img.preview-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+}
+
+.file-grid.list-mode .file-card img.file-icon-img {
+    width: 20px;
+    height: 20px;
+}
+
+.file-grid.list-mode .file-card .file-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .file-item {
     position: relative;
 }
@@ -472,8 +513,8 @@ th {
     object-fit: cover;
     border-radius: 4px;
     margin-bottom: 8px;
-    max-width: 60px;
-    max-height: 60px;
+    max-width: 128px;
+    max-height: 128px;
 }
 
 /* Filename text styling (inside the button) */

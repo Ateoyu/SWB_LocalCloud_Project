@@ -64,9 +64,7 @@ function updateFileListWithThumbnails() {
 
             if (thumbnail) {
                 img.src = thumbnail;
-                // size is styled via CSS; ensure fallback here
-                img.style.width = img.style.width || '72px';
-                img.style.height = img.style.height || '72px';
+                // Let CSS control sizing for both grid and list modes
                 img.style.objectFit = 'cover';
             }
         } catch (error) {

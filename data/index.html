@@ -6,7 +6,6 @@
     <title>ESP Drive</title>
     <link rel="stylesheet" href="styles/style.css">
     <script src="js/main.js" type="module"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
 
@@ -64,6 +63,14 @@
             <div id="currentPath" class="path-display">/</div>
 
             <div class="header-actions">
+                <div class="view-toggles">
+                    <button id="gridViewBtn" class="view-btn active" title="Grid View">
+                        <img src="icons/view_grid.png" alt="Grid" width="20" height="20">
+                    </button>
+                    <button id="listViewBtn" class="view-btn" title="List View">
+                        <img src="icons/view_list.png" alt="List" width="20" height="20">
+                    </button>
+                </div>
                 <label class="btn-secondary" style="display:flex;align-items:center;gap:8px;">
                     <input type="checkbox" id="selectAllCheckbox">
                     Select All

@@ -20,7 +20,39 @@ document.addEventListener('DOMContentLoaded', function () {
     menuToggle.addEventListener('click', toggleMenu);
     overlay.addEventListener('click', toggleMenu);
 
-    // Grid-only: no view toggle controls
+    // View toggle: Grid <-> List (1 entry per row)
+    const gridViewBtn = document.getElementById('gridViewBtn');
+    const listViewBtn = document.getElementById('listViewBtn');
+    const fileTableEl = document.getElementById('fileTable');
+
+    function applyView(mode, {save=true} = {}) {
+        if (!fileTableEl) return;
+
+        if (mode === 'list') {
+            fileTableEl.classList.add('list-mode');
+            listViewBtn?.classList.add('active');
+            gridViewBtn?.classList.remove('active');
+        } else {
+            fileTableEl.classList.remove('list-mode');
+            gridViewBtn?.classList.add('active');
+            listViewBtn?.classList.remove('active');
+            mode = 'grid';
+        }
+        if (save) {
+            try { localStorage.setItem('viewMode', mode); } catch (_) {}
+        }
+    }
+
+    gridViewBtn?.addEventListener('click', () => applyView('grid'));
+    listViewBtn?.addEventListener('click', () => applyView('list'));
+
+    // Apply persisted preference
+    try {
+        const saved = localStorage.getItem('viewMode');
+        if (saved === 'list' || saved === 'grid') {
+            applyView(saved, {save:false});
+        }
+    } catch (_) {}
 
     const createFolderBtn = document.getElementById('createFolderBtn');
     const fileInput = document.getElementById('fileInput');

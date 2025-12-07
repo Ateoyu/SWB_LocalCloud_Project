@@ -19,7 +19,7 @@ String getSDCardInfo() {
 String getContentType(String filename) {
     filename.toLowerCase();
 
-    static map<String, String> mimeTypes = {
+    static std::map<String, String> mimeTypes = {
         {".jpg", "image/jpeg"},
         {".jpeg", "image/jpeg"},
         {".png", "image/png"},
@@ -130,7 +130,7 @@ String getFileListHTML(String currentPath) {
             html += "<div class='file-item' data-type='image'>";
             html += "<input type='checkbox' class='select-checkbox' data-path=\"" + cleanPath + "\">";
             html += "<div class='file-card'>";
-            html += "<img src='/preview?path=" + cleanPath + "' class='preview-img' alt='' onerror=\"this.style.display='none'\" data-path=\"" + cleanPath + "\">";
+            html += "<img src='/preview?path=" + cleanPath + "' class='preview-img' alt='' loading='lazy' decoding='async' onerror=\"this.style.display='none'\" data-path=\"" + cleanPath + "\">";
             html += "<span class='file-name'>" + filename + "</span>";
             html += "</div>";
             html += "</div>";

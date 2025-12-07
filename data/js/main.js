@@ -7,7 +7,6 @@ window.navigateToFolder = navigateToFolder;
 window.navigateToParent = navigateToParent;
 
 document.addEventListener('DOMContentLoaded', function () {
-    //hamburger
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
@@ -20,7 +19,6 @@ document.addEventListener('DOMContentLoaded', function () {
     menuToggle.addEventListener('click', toggleMenu);
     overlay.addEventListener('click', toggleMenu);
 
-    // View toggle: Grid <-> List (1 entry per row)
     const gridViewBtn = document.getElementById('gridViewBtn');
     const listViewBtn = document.getElementById('listViewBtn');
     const fileTableEl = document.getElementById('fileTable');
@@ -46,7 +44,6 @@ document.addEventListener('DOMContentLoaded', function () {
     gridViewBtn?.addEventListener('click', () => applyView('grid'));
     listViewBtn?.addEventListener('click', () => applyView('list'));
 
-    // Apply persisted preference
     try {
         const saved = localStorage.getItem('viewMode');
         if (saved === 'list' || saved === 'grid') {

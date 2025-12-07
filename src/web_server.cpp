@@ -55,6 +55,7 @@ void setupWebServer() {
     server.on("/list", HTTP_GET, handleListFiles);
     server.on("/sdinfo", HTTP_GET, handleSDInfo);
     server.on("/download", HTTP_GET, handleDownload);
+    server.on("/move", HTTP_GET, handleMove);
     server.on("/deleteFile", HTTP_GET, handleDeleteFile);
     server.on("/mkdir", HTTP_GET, handleCreateFolder);
     server.on("/deleteFolder", HTTP_GET, handleDeleteFolder);
@@ -327,4 +328,78 @@ void handleImagePreview(AsyncWebServerRequest *request) {
 
     response->addHeader("Cache-Control", "public, max-age=86400");
     request->send(response);
+}
+
+void handleMove(AsyncWebServerRequest *request) {
+    if (!request->hasParam("src") || !request->hasParam("dst")) {
+        request->send(400, "text/plain", "Missing src or dst parameter");
+        return;
+    }
+
+    String src = request->getParam("src")->value();
+    String dstFolder = request->getParam("dst")->value();
+
+    src = sanitizePath(src);
+    dstFolder = sanitizePath(dstFolder);
+
+    if (!SD.exists(src)) {
+        request->send(404, "text/plain", "Source not found");
+        return;
+    }
+
+    if (!SD.exists(dstFolder)) {
+        request->send(404, "text/plain", "Destination folder not found");
+        return;
+    }
+
+    File dst = SD.open(dstFolder);
+    if (!dst || !dst.isDirectory()) {
+        if (dst) dst.close();
+        request->send(400, "text/plain", "Destination is not a folder");
+        return;
+    }
+    dst.close();
+
+    // Base name for destination
+    String base = src;
+    int lastSlash = base.lastIndexOf('/');
+    if (lastSlash != -1) base = base.substring(lastSlash + 1);
+
+    // Prevent moving a directory into its own subdirectory
+    File s = SD.open(src);
+    bool isDir = s && s.isDirectory();
+    if (s) s.close();
+
+    if (isDir) {
+        String srcPrefix = src;
+        if (!srcPrefix.endsWith("/")) srcPrefix += "/";
+        String dstCheck = dstFolder;
+        if (!dstCheck.endsWith("/")) dstCheck += "/";
+        if (dstCheck.startsWith(srcPrefix)) {
+            request->send(400, "text/plain", "Cannot move a folder into its own subfolder");
+            return;
+        }
+    }
+
+    String newPath = dstFolder;
+    if (!newPath.endsWith("/")) newPath += "/";
+    newPath += base;
+    newPath = sanitizePath(newPath);
+
+    if (newPath == src) {
+        request->send(200, "text/plain", "No move needed");
+        return;
+    }
+
+    if (SD.exists(newPath)) {
+        request->send(409, "text/plain", "Destination already exists");
+        return;
+    }
+
+    bool ok = SD.rename(src, newPath);
+    if (ok) {
+        request->send(200, "text/plain", "Moved");
+    } else {
+        request->send(500, "text/plain", "Move failed");
+    }
 }

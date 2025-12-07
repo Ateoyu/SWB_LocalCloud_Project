@@ -26,6 +26,7 @@ void handleUpload(AsyncWebServerRequest *request,
 void handleListFiles(AsyncWebServerRequest *request);
 void handleSDInfo(AsyncWebServerRequest *request);
 void handleDownload(AsyncWebServerRequest *request);
+void handleMove(AsyncWebServerRequest *request);
 void handleDeleteFile(AsyncWebServerRequest *request);
 void handleCreateFolder(AsyncWebServerRequest *request);
 void handleDeleteFolder(AsyncWebServerRequest *request);

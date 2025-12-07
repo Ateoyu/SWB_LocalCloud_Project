@@ -1,6 +1,6 @@
 import { state, setStatus, updateProgress, updateSDInfo, updatePathDisplay, updateBatchActions } from './uiManager.js';
 import { toggleFileSelection } from './batchActions.js';
-import { updateFileListWithThumbnails } from './thumbnailManager.js';
+import { setupLightbox } from './lightbox.js';
 function refreshFileList() {
     setStatus('Loading files...');
     state.selectedFiles.clear();
@@ -32,8 +32,9 @@ function refreshFileList() {
                         }
                     });
                 });
-
-                updateFileListWithThumbnails();
+                // Bind lightbox to image previews
+                setupLightbox();
+                setupDragAndDrop();
             }, 100);
         })
         .catch(error => {
@@ -43,8 +44,6 @@ function refreshFileList() {
 }
 
 function setupDynamicEventListeners() {
-    // Convert inline onclick handlers to JS events (for security and SPA feel)
-    // Folder navigation
     document.querySelectorAll('#fileTable .file-item [onclick*="navigateToFolder"]').forEach(button => {
         const onclick = button.getAttribute('onclick');
         const match = onclick && onclick.match(/navigateToFolder\('([^']+)'\)/);
@@ -56,10 +55,124 @@ function setupDynamicEventListeners() {
         }
     });
 
-    // Parent navigation
     document.querySelectorAll('#fileTable .file-item [onclick="navigateToParent()"]').forEach(button => {
         button.removeAttribute('onclick');
         button.addEventListener('click', () => window.navigateToParent && window.navigateToParent());
+    });
+}
+
+function setupDragAndDrop() {
+    const items = document.querySelectorAll('#fileTable .file-item');
+
+    items.forEach(item => {
+        const checkbox = item.querySelector('input.select-checkbox');
+        const card = item.querySelector('.file-card');
+        if (!card) return;
+
+        if (checkbox && checkbox.dataset.path) {
+            card.setAttribute('draggable', 'true');
+
+            card.addEventListener('dragstart', (e) => onDragStart(e, item));
+            card.addEventListener('dragend', onDragEnd);
+        }
+
+        if (item.dataset.type === 'folder' || item.dataset.type === 'back') {
+            card.addEventListener('dragenter', onDragEnter);
+            card.addEventListener('dragover', onDragOver);
+            card.addEventListener('dragleave', onDragLeave);
+            card.addEventListener('drop', (e) => onDrop(e, item));
+        }
+    });
+}
+
+function collectDragSources(draggedItem) {
+    const draggedPath = draggedItem.querySelector('input.select-checkbox')?.dataset.path;
+    if (!draggedPath) return [];
+
+    if (state.selectedFiles.size > 0 && state.selectedFiles.has(draggedPath)) {
+        return Array.from(state.selectedFiles);
+    }
+    return [draggedPath];
+}
+
+function onDragStart(e, item) {
+    const srcPaths = collectDragSources(item);
+    if (srcPaths.length === 0) return;
+
+    try { e.dataTransfer.setData('text/plain', JSON.stringify(srcPaths)); } catch (_) {}
+    e.dataTransfer.effectAllowed = 'move';
+    item.classList.add('dragging');
+}
+
+function onDragEnd(e) {
+    const dragging = document.querySelector('#fileTable .file-item.dragging');
+    dragging?.classList.remove('dragging');
+}
+
+function onDragEnter(e) {
+    e.preventDefault();
+    e.currentTarget.classList.add('drop-target');
+}
+
+function onDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+}
+
+function onDragLeave(e) {
+    e.currentTarget.classList.remove('drop-target');
+}
+
+function onDrop(e, folderItem) {
+    e.preventDefault();
+    const card = e.currentTarget;
+    card.classList.remove('drop-target');
+
+    let data = [];
+    try {
+        const txt = e.dataTransfer.getData('text/plain');
+        if (txt) data = JSON.parse(txt);
+    } catch (_) {}
+
+    let dstPath;
+    if (folderItem.dataset.type === 'back') {
+        dstPath = getParentPath(state.currentPath);
+    } else {
+        dstPath = folderItem.querySelector('input.select-checkbox')?.dataset.path;
+    }
+    if (!dstPath || data.length === 0) return;
+
+    moveItems(data, dstPath);
+}
+
+function getParentPath(path) {
+    if (!path || path === '/') return '/';
+    const parts = path.split('/').filter(Boolean);
+    parts.pop();
+    return parts.length ? '/' + parts.join('/') : '/';
+}
+
+function moveItems(srcPaths, dstFolderPath) {
+    const folderName = dstFolderPath.split('/').filter(Boolean).pop() || '/';
+    setStatus(`Moving ${srcPaths.length} item(s) to ${folderName}...`);
+
+    state.selectedFiles.clear();
+    updateBatchActions();
+
+    let ok = 0, fail = 0;
+    const ops = srcPaths.map(src => {
+        if (src === dstFolderPath) { fail++; return Promise.resolve(); }
+
+        const url = `/move?src=${encodeURIComponent(src)}&dst=${encodeURIComponent(dstFolderPath)}`;
+        return fetch(url)
+            .then(r => { if (r.ok) { ok++; } else { fail++; } })
+            .catch(() => { fail++; });
+    });
+
+    Promise.all(ops).then(() => {
+        setStatus(`Move completed: ${ok} success${fail ? `, ${fail} failed` : ''}`);
+        refreshFileList();
+        updateSDInfo();
     });
 }
 

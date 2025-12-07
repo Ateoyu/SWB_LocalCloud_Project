@@ -3,117 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESP32-S3 Cloud Storage</title>
+    <title>ESP Drive</title>
+    <link rel="stylesheet" href="styles/style.css">
+    <script src="js/main.js" type="module"></script>
 </head>
 <body>
-<div class="container">
-    <h1>ESP32-S3 Cloud Storage</h1>
 
-    <div class="upload-area">
-        <h2>Upload File</h2>
-        <label for="fileInput" class="upload-label">Choose File</label>
-        <input type="file" id="fileInput">
-        <div class="progress-bar">
-            <div class="progress" id="progress"></div>
-        </div>
-        <div id="status" class="status">Ready to upload...</div>
-    </div>
-
-    <h2>Files on SD Card</h2>
-    <div id="fileList">
-        <table>
-            <thead>
-            <tr>
-                <th>Filename</th>
-                <th>Size</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody id="fileTable">
-            <!-- Files loaded by JavaScript -->
-            </tbody>
-        </table>
-    </div>
-
-    <button class="refresh-btn" onclick="refreshFileList()">🔄 Refresh List</button>
-
-    <div style="margin-top: 20px; padding: 10px; background: #f8f9fa; border-radius: 5px; font-size: 0.9em; color: #666;">
-        💡 Tip: Click "Download" to save files with their original names and extensions.
-    </div>
+<div class="mobile-header">
+    <button id="menuToggle" class="icon-btn">
+        <img src="icons/menu.png" alt="Menu" width="24" height="24">
+    </button>
+    <span class="mobile-brand">ESP Drive</span>
 </div>
 
-<script>
-    function refreshFileList() {
-        document.getElementById('status').textContent = 'Loading files...';
-        fetch('/list')
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('fileTable').innerHTML = html;
-                document.getElementById('status').textContent = 'Files loaded!';
-            })
-            .catch(error => {
-                document.getElementById('status').textContent = 'Error loading files';
-                console.error('Error:', error);
-            });
-    }
+<div class="app-container">
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
+            <img src="icons/cloud_logo.png" class="brand-icon" alt="Logo">
+            <h2>ESP Drive</h2>
+        </div>
 
-    function deleteFile(filename) {
-        if (confirm('Are you sure you want to delete "' + filename + '"?')) {
-            fetch('/delete?file=' + encodeURIComponent(filename))
-                .then(response => response.text())
-                .then(result => {
-                    alert(result);
-                    refreshFileList();
-                })
-                .catch(error => {
-                    alert('Error deleting file: ' + error);
-                });
-        }
-    }
+        <div class="action-panel">
+            <div class="upload-area">
+                <label for="fileInput" class="upload-btn-primary">
+                    <img src="icons/upload.png" alt="Upload" class="icon-on-btn"> Upload
+                </label>
+                <input type="file" id="fileInput" multiple hidden>
+                <div id="status" class="status-text">Ready</div>
+                <div class="progress-bar">
+                    <div class="progress" id="progress"></div>
+                </div>
+            </div>
 
-    document.getElementById('fileInput').addEventListener('change', function (e) {
-        if (e.target.files.length === 0) return;
+            <div class="divider"></div>
 
-        const file = e.target.files[0];
-        const formData = new FormData();
-        formData.append('file', file);
+            <div class="folder-creation">
+                <h4>New Folder</h4>
+                <div class="input-group">
+                    <input type="text" id="folderName" placeholder="Name...">
+                    <button id="createFolderBtn" class="btn-icon">
+                        <img src="icons/plus.png" alt="Create" width="16" height="16">
+                    </button>
+                </div>
+            </div>
+        </div>
 
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', '/upload');
+        <div class="spacer"></div>
 
-        xhr.upload.onprogress = function (e) {
-            if (e.lengthComputable) {
-                const percent = (e.loaded / e.total) * 100;
-                document.getElementById('progress').style.width = percent + '%';
-                document.getElementById('status').textContent =
-                    '📤 Uploading: ' + file.name + ' (' + Math.round(percent) + '%)';
-            }
-        };
+        <div class="sd-info card">
+            <h3><img src="icons/storage.png" alt="Storage" width="16" height="16"> Storage</h3>
+            <div id="sdCardInfo">Loading...</div>
+        </div>
+    </aside>
 
-        xhr.onload = function () {
-            if (xhr.status === 200) {
-                document.getElementById('status').textContent = '✅ Upload complete!';
-                document.getElementById('progress').style.width = '0%';
-                document.getElementById('fileInput').value = '';
-                setTimeout(() => {
-                    document.getElementById('status').textContent = 'Ready to upload...';
-                }, 2000);
-                refreshFileList();
-            } else {
-                document.getElementById('status').textContent = '❌ Upload failed!';
-            }
-        };
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-        xhr.onerror = function () {
-            document.getElementById('status').textContent = '❌ Upload failed!';
-        };
+    <main class="main-content">
+        <header class="top-bar">
+            <div id="currentPath" class="path-display">/</div>
 
-        document.getElementById('status').textContent = 'Starting upload...';
-        xhr.send(formData);
-    });
+            <div class="header-actions">
+                <div class="view-toggles">
+                    <button id="gridViewBtn" class="view-btn active" title="Grid View">
+                        <img src="icons/view_grid.png" alt="Grid" width="20" height="20">
+                    </button>
+                    <button id="listViewBtn" class="view-btn" title="List View">
+                        <img src="icons/view_list.png" alt="List" width="20" height="20">
+                    </button>
+                </div>
+                <label class="btn-secondary" style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="selectAllCheckbox">
+                    Select All
+                </label>
+                <button id="refreshBtn" class="btn-secondary">
+                    <img src="icons/refresh.png" alt="Refresh" width="16" height="16"> Refresh
+                </button>
+            </div>
+        </header>
 
-    // Initial load
-    refreshFileList();
-</script>
+        <div id="batchActions" class="batch-actions">
+            <span class="selected-count" id="selectedCount">0 selected</span>
+            <div class="batch-right">
+                <button id="batchDownloadBtn" class="btn-small">
+                    <img src="icons/download.png" alt="Download" width="16" height="16">
+                </button>
+                <button id="batchDeleteBtn" class="btn-small btn-danger">
+                    <img src="icons/delete.png" alt="Delete" width="16" height="16">
+                </button>
+                <button id="deselectAllBtn" class="btn-link">Clear</button>
+            </div>
+        </div>
+
+        <div class="file-list-wrapper grid-only" id="fileContainer">
+            <div id="fileTable" class="file-grid"></div>
+        </div>
+    </main>
+</div>
+
+<div class="lightbox" id="lightbox" aria-hidden="true">
+    <span class="close" id="lightboxClose" aria-label="Close">&times;</span>
+    <button class="prev" id="lightboxPrev" aria-label="Previous">&#10094;</button>
+    <img class="lightbox-image" id="lightboxImage" src="" alt="Preview" />
+    <button class="next" id="lightboxNext" aria-label="Next">&#10095;</button>
+</div>
+
 </body>
 </html>

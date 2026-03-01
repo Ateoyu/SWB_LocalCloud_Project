@@ -2,6 +2,10 @@
 
 A high-performance local file storage and management system running on the ESP32-S3. This project allows you to access and manage files stored on an SD card through a modern, responsive web interface, creating your own private "LocalCloud".
 
+
+https://github.com/user-attachments/assets/8e0c5d82-5dc5-4ed6-b802-ef80100ad13f
+
+
 ## Features
 
 - **Responsive Web Manager**: Accessible from any desktop or mobile device.

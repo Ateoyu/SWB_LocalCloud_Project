@@ -39,7 +39,7 @@ void createPath(String path) {
     }
 }
 
-bool deleteFolderRecursive(String path) {
+bool deleteFolderRecursive(const String& path) {
     File dir = SD.open(path);
     if (!dir) return false;
     if (!dir.isDirectory()) {

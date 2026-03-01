@@ -7,7 +7,7 @@
 
 String sanitizePath(String path);
 String sanitizeFilename(String filename);
-bool deleteFolderRecursive(String path);
+bool deleteFolderRecursive(const String& path);
 void createPath(String path);
 
 #endif

@@ -28,29 +28,10 @@ void initAP() {
 }
 
 void setupWebServer() {
-    // ------------------------------------------------------
-    // 1. STATIC ASSETS (LittleFS)
-    // ------------------------------------------------------
-
-    // Map URL "/icons/" to LittleFS folder "/icons/"
     server.serveStatic("/icons/", LittleFS, "/icons/");
-
-    // Map URL "/js/" to LittleFS folder "/js/"
     server.serveStatic("/js/", LittleFS, "/js/");
-
-    // Map URL "/styles/" to LittleFS folder "/styles/"
     server.serveStatic("/styles/", LittleFS, "/styles/");
-
-    // Map Root "/" to LittleFS Root "/"
-    // .setDefaultFile("index.html") means if they request http://ip/,
-    // it serves /index.html automatically.
     server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
-
-    // ------------------------------------------------------
-    // 2. API ENDPOINTS (SD Card & Logic)
-    // ------------------------------------------------------
-    // These remain as dynamic handlers because they execute logic
-    // (creating files, deleting, listing) rather than just serving static content.
 
     server.on("/list", HTTP_GET, handleListFiles);
     server.on("/sdinfo", HTTP_GET, handleSDInfo);
